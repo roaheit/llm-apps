@@ -73,6 +73,10 @@ This repository solves that by focusing on:
 * Cost vs accuracy strategies
 * Deployment & performance guidance
 
+### 🔹 Libraries & Components
+
+* **agent-recall** — Drop-in persistent memory for LLM agents. Short-term, long-term, and episodic memory layers with local-first, framework-agnostic design. See [agent-recall/](agent-recall/README.md)
+
 ---
 
 ## 🏗️ Tech Philosophy
