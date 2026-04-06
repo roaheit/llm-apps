@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>agent-recall — Persistent memory for LLM agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080b0f;
+    --surface: #0e1318;
+    --border: #1c2530;
+    --accent: #00e5a0;
+    --accent2: #0af;
+    --accent3: #f5a623;
+    --text: #d4e0ec;
+    --muted: #5a7080;
+    --code-bg: #0a1019;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── Custom cursor ── */
+  .cursor {
+    position: fixed; width: 10px; height: 10px;
+    background: var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, opacity 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.2s, height 0.2s, opacity 0.2s;
+    opacity: 0.5;
+  }
+
+  /* ── Grid noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+  @keyframes gridPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4rem 2rem; z-index: 1; text-align: center;
+  }
+
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%);
+    pointer-events: none; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--accent); color: var(--accent);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; padding: 6px 14px; border-radius: 2px;
+    margin-bottom: 2.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; background: var(--accent);
+    border-radius: 50%; animation: blink 1.4s step-end infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  h1 {
+    font-size: clamp(3.5rem, 9vw, 7.5rem);
+    font-weight: 800; line-height: 0.95;
+    letter-spacing: -0.04em;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .h1-accent { color: var(--accent); }
+
+  .tagline {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+    color: var(--muted); margin-top: 1.5rem;
+    letter-spacing: 0.02em; max-width: 520px;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 0.08em; padding: 12px 28px;
+    border-radius: 2px; text-decoration: none; transition: all 0.2s;
+    cursor: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: #000; font-weight: 500;
+  }
+  .btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,229,160,0.3); }
+  .btn-outline {
+    border: 1px solid var(--border); color: var(--text);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Terminal ── */
+  .terminal-wrap {
+    width: 100%; max-width: 680px; margin-top: 4rem;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+
+  .terminal {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,229,160,0.05), 0 40px 80px rgba(0,0,0,0.6);
+  }
+
+  .terminal-bar {
+    background: #131920; padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-dot.red   { background: #ff5f57; }
+  .t-dot.yellow{ background: #febc2e; }
+  .t-dot.green { background: #28c840; }
+  .t-title {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); margin-left: auto; margin-right: auto;
+  }
+
+  .terminal-body { padding: 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.8; }
+
+  .t-comment { color: #3d5a6a; }
+  .t-keyword { color: var(--accent2); }
+  .t-fn { color: var(--accent); }
+  .t-str { color: var(--accent3); }
+  .t-output { color: #4a9d75; font-style: italic; }
+  .t-prompt { color: var(--muted); }
+
+  .type-line { overflow: hidden; white-space: nowrap; }
+  .type-line:nth-child(1)  { animation: typeIn 0.4s 1.0s both; }
+  .type-line:nth-child(2)  { animation: typeIn 0.4s 1.3s both; }
+  .type-line:nth-child(3)  { animation: typeIn 0.4s 1.6s both; }
+  .type-line:nth-child(4)  { animation: typeIn 0.4s 1.9s both; }
+  .type-line:nth-child(5)  { animation: typeIn 0.4s 2.2s both; }
+  .type-line:nth-child(6)  { animation: typeIn 0.4s 2.5s both; }
+  .type-line:nth-child(7)  { animation: typeIn 0.4s 2.8s both; }
+  .type-line:nth-child(8)  { animation: typeIn 0.4s 3.1s both; }
+  .type-line:nth-child(9)  { animation: typeIn 0.4s 3.4s both; }
+  .type-line:nth-child(10) { animation: typeIn 0.4s 3.7s both; }
+  .type-line:nth-child(11) { animation: typeIn 0.4s 4.0s both; }
+
+  @keyframes typeIn {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 2em; }
+  }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    margin: 0; z-index: 1; position: relative;
+  }
+  .stat {
+    flex: 1; min-width: 160px; padding: 2rem 1.5rem;
+    text-align: center; border-right: 1px solid var(--border);
+    transition: background 0.25s;
+  }
+  .stat:last-child { border-right: none; }
+  .stat:hover { background: rgba(0,229,160,0.04); }
+  .stat-num {
+    font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em;
+    color: var(--accent); display: block;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); letter-spacing: 0.1em; margin-top: 4px;
+    display: block; text-transform: uppercase;
+  }
+
+  /* ── Sections ── */
+  section { position: relative; z-index: 1; }
+
+  .section-inner {
+    max-width: 1100px; margin: 0 auto; padding: 6rem 2rem;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.2em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+    margin-bottom: 1rem;
+  }
+
+  .section-sub {
+    font-family: 'DM Mono', monospace; color: var(--muted);
+    font-size: 0.9rem; max-width: 480px; line-height: 1.7;
+  }
+
+  /* ── Memory layers ── */
+  .layers {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden; margin-top: 3rem;
+  }
+
+  .layer-card {
+    background: var(--surface); padding: 2.5rem 2rem;
+    transition: background 0.25s; position: relative; overflow: hidden;
+  }
+  .layer-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(0,229,160,0.04));
+    pointer-events: none;
+  }
+  .layer-card:hover { background: #111820; }
+
+  .layer-icon {
+    width: 44px; height: 44px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 1.5rem;
+  }
+  .icon-st { background: rgba(0,170,255,0.12); }
+  .icon-lt { background: rgba(0,229,160,0.12); }
+  .icon-ep { background: rgba(245,166,35,0.12); }
+
+  .layer-title {
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;
+  }
+  .layer-desc {
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    color: var(--muted); line-height: 1.7;
+  }
+
+  .layer-tag {
+    display: inline-block; margin-top: 1.2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.1em; padding: 4px 10px;
+    border-radius: 2px; text-transform: uppercase;
+  }
+  .tag-st { background: rgba(0,170,255,0.12); color: var(--accent2); }
+  .tag-lt { background: rgba(0,229,160,0.12); color: var(--accent); }
+  .tag-ep { background: rgba(245,166,35,0.12); color: var(--accent3); }
+
+  /* ── API section ── */
+  .api-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .api-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .api-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+  .api-method {
+    font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    color: var(--accent); margin-bottom: 0.5rem;
+  }
+  .api-desc {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); line-height: 1.6;
+  }
+
+  /* ── Install ── */
+  .install-box {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.2rem 1.5rem; margin-top: 2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem;
+  }
+  .install-cmd { color: var(--accent); }
+  .copy-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    padding: 5px 12px; border-radius: 2px; cursor: none;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Comparison table ── */
+  .compare-table {
+    width: 100%; border-collapse: collapse; margin-top: 3rem;
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+  }
+  .compare-table th {
+    text-align: left; padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted); font-weight: 400; letter-spacing: 0.08em;
+    text-transform: uppercase; font-size: 0.7rem;
+  }
+  .compare-table th.highlight { color: var(--accent); }
+  .compare-table td {
+    padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(0,229,160,0.03); }
+  .compare-table td.highlight { background: rgba(0,229,160,0.05); }
+  .check { color: var(--accent); }
+  .cross { color: #3d5a6a; }
+  .partial { color: var(--accent3); }
+
+  /* ── Diagram ── */
+  .diagram {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2.5rem; margin-top: 3rem;
+    overflow-x: auto;
+  }
+  .diagram pre {
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    line-height: 1.7; color: #4a9d75;
+  }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border); padding: 2.5rem 2rem;
+    text-align: center; z-index: 1; position: relative;
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1100px; margin: 0 auto; flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-brand {
+    font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em;
+  }
+  .footer-brand span { color: var(--accent); }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.2s; cursor: none;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  /* ── Scroll reveal ── */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .layers { grid-template-columns: 1fr; }
+    .api-grid { grid-template-columns: 1fr; }
+    .footer-inner { flex-direction: column; text-align: center; }
+    .stat { min-width: 120px; }
+  }
+
+  /* ── Animated border on hero terminal ── */
+  @keyframes borderGlow {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(0,229,160,0.05), 0 40px 80px rgba(0,0,0,0.6); }
+    50% { box-shadow: 0 0 0 1px rgba(0,229,160,0.15), 0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(0,229,160,0.05); }
+  }
+  .terminal { animation: borderGlow 4s ease-in-out infinite; }
+
+  /* ── Floating particles ── */
+  .particle {
+    position: fixed; border-radius: 50%;
+    background: var(--accent); pointer-events: none; z-index: 0;
+    animation: float linear infinite;
+    opacity: 0;
+  }
+  @keyframes float {
+    0% { transform: translateY(110vh) scale(0); opacity: 0; }
+    10% { opacity: 0.15; }
+    90% { opacity: 0.05; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Particles -->
+<div id="particles"></div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="badge">
+    <span class="badge-dot"></span>
+    v0.1.0 — now on PyPI
+  </div>
+
+  <h1>agent<span class="h1-accent">-recall</span></h1>
+  <p class="tagline">
+    Drop-in persistent memory for LLM agents.<br/>
+    Three layers. Framework-agnostic. Local-first.
+  </p>
+
+  <div class="hero-cta">
+    <a href="https://github.com/yourusername/agent-recall" class="btn btn-primary">
+      View on GitHub →
+    </a>
+    <a href="#install" class="btn btn-outline">
+      pip install
+    </a>
+  </div>
+
+  <div class="terminal-wrap">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="t-dot red"></span>
+        <span class="t-dot yellow"></span>
+        <span class="t-dot green"></span>
+        <span class="t-title">research_agent.py</span>
+      </div>
+      <div class="terminal-body">
+        <div class="type-line"><span class="t-keyword">from</span> agent_recall <span class="t-keyword">import</span> Memory</div>
+        <div class="type-line"> </div>
+        <div class="type-line"><span class="t-comment"># Same agent, two sessions — watch it remember</span></div>
+        <div class="type-line">mem = <span class="t-fn">Memory</span>(<span class="t-str">"research-agent"</span>)</div>
+        <div class="type-line"> </div>
+        <div class="type-line"><span class="t-comment"># Session 1</span></div>
+        <div class="type-line">mem.<span class="t-fn">remember</span>(<span class="t-str">"User prefers bullet points"</span>, layer=<span class="t-str">"long_term"</span>)</div>
+        <div class="type-line">mem.<span class="t-fn">log_episode</span>(action=<span class="t-str">"web_search"</span>, result=<span class="t-str">"3 papers found"</span>)</div>
+        <div class="type-line"> </div>
+        <div class="type-line"><span class="t-comment"># Session 2 — picks up exactly where it left off</span></div>
+        <div class="type-line">ctx = mem.<span class="t-fn">recall</span>(<span class="t-str">"user preferences"</span>)</div>
+        <div class="type-line"><span class="t-output"># → "[long-term] User prefers bullet points"</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ── -->
+<div class="stats-bar reveal">
+  <div class="stat">
+    <span class="stat-num" data-target="3">0</span>
+    <span class="stat-label">Memory Layers</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="4">0</span>
+    <span class="stat-label">Vector Backends</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="0">0</span>
+    <span class="stat-label">Required Config</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="1">0</span>
+    <span class="stat-label">pip install</span>
+  </div>
+</div>
+
+<!-- ── LAYERS ── -->
+<section>
+  <div class="section-inner">
+    <p class="section-label reveal">Architecture</p>
+    <h2 class="reveal">Three layers.<br/>One clean API.</h2>
+    <p class="section-sub reveal">Most agents have no memory. The rest have bad memory. agent-recall gives you all three types — properly.</p>
+
+    <div class="layers reveal">
+      <div class="layer-card">
+        <div class="layer-icon icon-st">⚡</div>
+        <div class="layer-title">Short-term</div>
+        <div class="layer-desc">
+          In-process buffer for the current session. Stores recent messages and observations. Auto-compresses to long-term when the token limit is hit.
+        </div>
+        <span class="layer-tag tag-st">In-session</span>
+      </div>
+      <div class="layer-card">
+        <div class="layer-icon icon-lt">🧠</div>
+        <div class="layer-title">Long-term</div>
+        <div class="layer-desc">
+          Cross-session semantic memory. Embeddings stored in a local vector DB. Retrieved via similarity search — only what's relevant, not everything.
+        </div>
+        <span class="layer-tag tag-lt">Persistent</span>
+      </div>
+      <div class="layer-card">
+        <div class="layer-icon icon-ep">📋</div>
+        <div class="layer-title">Episodic</div>
+        <div class="layer-desc">
+          Timestamped log of agent actions and outcomes. Filter by time, tag, or action type. Lets your agent learn from what it's already done.
+        </div>
+        <span class="layer-tag tag-ep">Queryable</span>
+      </div>
+    </div>
+
+    <div class="diagram reveal">
+      <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                       Memory(agent_id)                          │
+│                                                                 │
+│  ┌───────────────┐   ┌────────────────┐   ┌─────────────────┐  │
+│  │  Short-term   │   │   Long-term    │   │    Episodic     │  │
+│  │  (buffer)     │   │  (semantic)    │   │    (log)        │  │
+│  │               │   │                │   │                 │  │
+│  │  in-process   │   │  ChromaDB      │   │  JSONL          │  │
+│  │  token-capped │   │  local vector  │   │  append-only    │  │
+│  │               │   │  cosine sim    │   │  filterable     │  │
+│  │  auto-compress│──▶│  cross-session │   │  by tag/time    │  │
+│  └───────────────┘   └────────────────┘   └─────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── INSTALL ── -->
+<section id="install" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Install</p>
+    <h2 class="reveal">Zero config.<br/>Five-minute setup.</h2>
+
+    <div class="install-box reveal">
+      <span class="install-cmd">pip install "agent-recall[chroma]"</span>
+      <button class="copy-btn" onclick="copyInstall(this)">copy</button>
+    </div>
+
+    <div style="margin-top: 3rem;" class="reveal">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">quickstart.py</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-keyword">from</span> agent_recall <span class="t-keyword">import</span> Memory</div>
+          <div><span class="t-keyword">import</span> os</div>
+          <br/>
+          <div>mem = <span class="t-fn">Memory</span>(agent_id=<span class="t-str">"my-agent"</span>)</div>
+          <br/>
+          <div><span class="t-comment"># Store a fact</span></div>
+          <div>mem.<span class="t-fn">remember</span>(<span class="t-str">"User's name is Alex"</span>, layer=<span class="t-str">"long_term"</span>)</div>
+          <br/>
+          <div><span class="t-comment"># Retrieve relevant context before your LLM call</span></div>
+          <div>context = mem.<span class="t-fn">recall</span>(<span class="t-str">"who is the user?"</span>)</div>
+          <br/>
+          <div><span class="t-comment"># Log what your agent did</span></div>
+          <div>mem.<span class="t-fn">log_episode</span>(action=<span class="t-str">"api_call"</span>, result=<span class="t-str">"success"</span>)</div>
+          <br/>
+          <div><span class="t-comment"># Compress buffer when it gets long</span></div>
+          <div><span class="t-keyword">if</span> mem.short_term.<span class="t-fn">is_full</span>():</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;mem.<span class="t-fn">compress</span>()</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── API ── -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">API</p>
+    <h2 class="reveal">Four methods.<br/>That's it.</h2>
+
+    <div class="api-grid reveal">
+      <div class="api-card">
+        <div class="api-method">mem.remember(content, layer)</div>
+        <div class="api-desc">Store a memory in short_term or long_term. Optional metadata dict for tagging and filtering.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">mem.recall(query, layers)</div>
+        <div class="api-desc">Retrieve relevant memories via semantic search. Returns formatted string ready to inject into a prompt.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">mem.log_episode(action, result, tags)</div>
+        <div class="api-desc">Append a timestamped action/outcome to the episodic log. Filter later by tag, time range, or action name.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">mem.compress()</div>
+        <div class="api-desc">LLM-summarizes the short-term buffer, moves the summary to long-term, and clears the buffer.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMPARISON ── -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Comparison</p>
+    <h2 class="reveal">How it stacks up.</h2>
+
+    <table class="compare-table reveal">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="highlight">agent-recall</th>
+          <th>LangChain Memory</th>
+          <th>MemGPT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Framework-agnostic</td>
+          <td class="highlight"><span class="check">✓</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+        </tr>
+        <tr>
+          <td>3 memory layers</td>
+          <td class="highlight"><span class="check">✓</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="partial">partial</span></td>
+        </tr>
+        <tr>
+          <td>Local-first (no cloud)</td>
+          <td class="highlight"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="cross">✗</span></td>
+        </tr>
+        <tr>
+          <td>Swappable vector backend</td>
+          <td class="highlight"><span class="check">✓</span></td>
+          <td><span class="partial">partial</span></td>
+          <td><span class="cross">✗</span></td>
+        </tr>
+        <tr>
+          <td>Episodic action log</td>
+          <td class="highlight"><span class="check">✓</span></td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+        </tr>
+        <tr>
+          <td>pip install + go</td>
+          <td class="highlight"><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td><span class="cross">✗</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">agent<span>-recall</span></div>
+    <div class="footer-links">
+      <a href="https://github.com/yourusername/agent-recall">GitHub</a>
+      <a href="https://pypi.org/project/agent-recall">PyPI</a>
+      <a href="https://github.com/yourusername/agent-recall/issues">Issues</a>
+      <a href="https://github.com/yourusername/agent-recall/blob/main/CONTRIBUTING.md">Contribute</a>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">
+      MIT License
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── Custom cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top  = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ring.style.width = '56px'; ring.style.height = '56px'; ring.style.opacity = '0.8';
+  });
+  el.addEventListener('mouseleave', () => {
+    ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.5';
+  });
+});
+
+// ── Floating particles
+const particleContainer = document.getElementById('particles');
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 3 + 1;
+  p.style.cssText = `
+    width: ${size}px; height: ${size}px;
+    left: ${Math.random() * 100}vw;
+    animation-duration: ${12 + Math.random() * 20}s;
+    animation-delay: ${Math.random() * 15}s;
+  `;
+  particleContainer.appendChild(p);
+}
+
+// ── Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Counter animation
+function animateCount(el, target, duration = 1200) {
+  let start = null;
+  const step = ts => {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('[data-target]').forEach(el => {
+        animateCount(el, parseInt(el.dataset.target));
+      });
+      statsObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stats-bar').forEach(el => statsObserver.observe(el));
+
+// ── Copy button
+function copyInstall(btn) {
+  navigator.clipboard.writeText('pip install "agent-recall[chroma]"');
+  btn.textContent = 'copied ✓';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+}
+</script>
+</body>
+</html>
