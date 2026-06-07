@@ -3,6 +3,8 @@
 
 ### A Curated Collection of Real-World LLM Applications & Autonomous AI Agents
 
+**🌐 [llm-apps.github.io](https://kumar-rohit.github.io/llm-apps-main)** — browse the interactive docs site
+
 Modern Large Language Models are powerful — but the real challenge is turning that power into **usable, reliable, production-ready applications**.
 This repository exists to bridge that gap.
 
@@ -75,7 +77,13 @@ This repository solves that by focusing on:
 
 ### 🔹 Libraries & Components
 
-* **agent-recall** — Drop-in persistent memory for LLM agents. Short-term, long-term, and episodic memory layers with local-first, framework-agnostic design. See [agent-recall/](agent-recall/README.md)
+* **agent-recall** — Drop-in persistent memory for LLM agents. Short-term, long-term, and episodic memory layers with local-first, framework-agnostic design.
+  * Source: [agent-recall/](agent-recall/)
+  * Docs: [agent-recall/README.md](agent-recall/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps-main/agent-recall)
+
+* **json-storyteller** — React component that transforms raw JSON into human-readable narratives using any LLM provider (Anthropic, OpenAI, Mistral, custom).
+  * Source: [json-storyteller/](json-storyteller/)
+  * Docs: [json-storyteller/README.md](json-storyteller/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps-main/json-storyteller)
 
 ---
 
@@ -101,12 +109,30 @@ Priorities:
 
 ## 🗺️ Roadmap
 
-* Structured project templates
-* Enterprise-grade AI reference architecture
-* Model benchmarking & comparisons
-* Production deployment examples
-* Learning breakdowns & deep dives
-* Plug-and-play starter kits
+| Status | Project | Description |
+|---|---|---|
+| ✅ Live | **agent-recall** | Persistent memory library for LLM agents |
+| ✅ Live | **json-storyteller** | React component for LLM-powered JSON narration |
+| 🔜 Soon | Multi-tool reasoning agent | Task-planning agent with web search, code exec & file tools |
+| 🔜 Soon | RAG reference implementation | Production-grade retrieval-augmented generation pipeline |
+| 📋 Planned | Model benchmarking toolkit | Cost vs accuracy comparisons across providers & tasks |
+| 📋 Planned | Enterprise AI reference architecture | Full-stack blueprint for production AI systems |
+| 📋 Planned | Deployment & performance guide | Practical patterns for shipping LLM apps to production |
+
+---
+
+## 🌐 GitHub Pages (Docs Site)
+
+The [`docs/`](docs/) folder is served as a GitHub Pages site. Enable it in your repo settings under **Pages → Source → Deploy from branch → `main` → `/docs`**.
+
+```
+docs/
+├── index.html              ← hub landing page (all projects)
+├── agent-recall/
+│   └── index.html          ← agent-recall interactive docs
+└── json-storyteller/
+    └── index.html          ← json-storyteller interactive docs
+```
 
 ---
 
