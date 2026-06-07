@@ -3,7 +3,7 @@
 
 ### A Curated Collection of Real-World LLM Applications & Autonomous AI Agents
 
-**🌐 [llm-apps.github.io](https://kumar-rohit.github.io/llm-apps-main)** — browse the interactive docs site
+**🌐 [llm-apps.github.io](https://kumar-rohit.github.io/llm-apps)** — browse the interactive docs site
 
 Modern Large Language Models are powerful — but the real challenge is turning that power into **usable, reliable, production-ready applications**.
 This repository exists to bridge that gap.
@@ -79,11 +79,11 @@ This repository solves that by focusing on:
 
 * **agent-recall** — Drop-in persistent memory for LLM agents. Short-term, long-term, and episodic memory layers with local-first, framework-agnostic design.
   * Source: [agent-recall/](agent-recall/)
-  * Docs: [agent-recall/README.md](agent-recall/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps-main/agent-recall)
+  * Docs: [agent-recall/README.md](agent-recall/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps/agent-recall)
 
 * **json-storyteller** — React component that transforms raw JSON into human-readable narratives using any LLM provider (Anthropic, OpenAI, Mistral, custom).
   * Source: [json-storyteller/](json-storyteller/)
-  * Docs: [json-storyteller/README.md](json-storyteller/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps-main/json-storyteller)
+  * Docs: [json-storyteller/README.md](json-storyteller/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps/json-storyteller)
 
 ---
 
