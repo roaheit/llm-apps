@@ -15,7 +15,7 @@
     --accent2: #0af;
     --accent3: #f5a623;
     --text: #d4e0ec;
-    --muted: #5a7080;
+    --muted: #7a909f;
     --code-bg: #0a1019;
   }
 
@@ -169,7 +169,7 @@
 
   .terminal-body { padding: 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.8; }
 
-  .t-comment { color: #3d5a6a; }
+  .t-comment { color: #6e8fa0; }
   .t-keyword { color: var(--accent2); }
   .t-fn { color: var(--accent); }
   .t-str { color: var(--accent3); }
@@ -348,7 +348,7 @@
   .compare-table tr:hover td { background: rgba(0,229,160,0.03); }
   .compare-table td.highlight { background: rgba(0,229,160,0.05); }
   .check { color: var(--accent); }
-  .cross { color: #3d5a6a; }
+  .cross { color: var(--text); }
   .partial { color: var(--accent3); }
 
   /* ── Diagram ── */
@@ -418,22 +418,29 @@
     90% { opacity: 0.05; }
     100% { transform: translateY(-10vh) scale(1); opacity: 0; }
   }
+
+  /* Focus visibility for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
 <!-- Particles -->
-<div id="particles"></div>
+<div id="particles" aria-hidden="true"></div>
 
 <!-- ── HERO ── -->
 <section class="hero">
-  <div class="hero-glow"></div>
+  <div class="hero-glow" aria-hidden="true"></div>
 
   <div class="badge">
-    <span class="badge-dot"></span>
+    <span class="badge-dot" aria-hidden="true"></span>
     v0.1.0 — now on PyPI
   </div>
 

@@ -16,7 +16,7 @@
     --accent3: #f5a623;
     --accent4: #c77dff;
     --text: #d4e0ec;
-    --muted: #5a7080;
+    --muted: #7a909f;
     --code-bg: #0a1019;
   }
 
@@ -328,13 +328,20 @@
     .pillars { grid-template-columns: 1fr; }
     .nav-links { display: none; }
   }
+
+  /* Focus visibility for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<div id="particles"></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div id="particles" aria-hidden="true"></div>
 
 <nav>
   <div class="nav-inner">
@@ -349,10 +356,10 @@
 </nav>
 
 <section class="hero">
-  <div class="hero-glow"></div>
+  <div class="hero-glow" aria-hidden="true"></div>
 
   <div class="badge">
-    <span class="badge-dot"></span>
+    <span class="badge-dot" aria-hidden="true"></span>
     Active &mdash; Growing collection
   </div>
 
@@ -374,7 +381,7 @@
 
 <div class="stats-bar reveal">
   <div class="stat">
-    <span class="stat-num" data-target="2">0</span>
+    <span class="stat-num" data-target="3">0</span>
     <span class="stat-label">Projects</span>
   </div>
   <div class="stat">
@@ -382,7 +389,7 @@
     <span class="stat-label">LLM Providers</span>
   </div>
   <div class="stat">
-    <span class="stat-num" data-target="2">0</span>
+    <span class="stat-num" data-target="3">0</span>
     <span class="stat-label">Languages</span>
   </div>
   <div class="stat">
@@ -451,6 +458,32 @@
         </div>
       </div>
 
+      <div class="project-card">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <span class="project-tag tag-react">React</span>
+          <span class="project-tag tag-ts">TypeScript</span>
+        </div>
+        <div class="project-title">agent<span>-council</span></div>
+        <p class="project-desc">
+          A composable multi-agent reasoning pipeline for React. Assemble a council of agents with custom roles, run them sequentially or in parallel, and watch them reason live.
+        </p>
+        <ul class="project-features">
+          <li>Sequential &amp; parallel orchestration modes</li>
+          <li>Per-agent LLM override &mdash; mix providers in one pipeline</li>
+          <li>Live visual reasoning trace as agents run</li>
+          <li>Synthesizer agent produces a unified final conclusion</li>
+        </ul>
+        <div class="project-footer">
+          <div class="project-links">
+            <a href="https://github.com/roaheit/llm-apps/tree/main/agent-council">GitHub</a>
+            <a href="https://www.npmjs.com/package/agent-council">npm</a>
+          </div>
+          <a href="agent-council/index.html" class="project-arrow">
+            Docs &rarr;
+          </a>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -512,6 +545,11 @@
         <span class="roadmap-status status-live">Live</span>
         <span class="roadmap-name">json-storyteller</span>
         <span class="roadmap-desc">React component for LLM-powered JSON narration</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="roadmap-status status-live">Live</span>
+        <span class="roadmap-name">agent-council</span>
+        <span class="roadmap-desc">Composable multi-agent reasoning pipeline for React</span>
       </li>
       <li class="roadmap-item">
         <span class="roadmap-status status-soon">Soon</span>

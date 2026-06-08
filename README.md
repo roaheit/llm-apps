@@ -3,7 +3,7 @@
 
 ### A Curated Collection of Real-World LLM Applications & Autonomous AI Agents
 
-**🌐 [llm-apps.github.io](https://kumar-rohit.github.io/llm-apps)** — browse the interactive docs site
+**🌐 [llm-apps.github.io](https://roaheit.github.io/llm-apps)** — browse the interactive docs site
 
 Modern Large Language Models are powerful — but the real challenge is turning that power into **usable, reliable, production-ready applications**.
 This repository exists to bridge that gap.
@@ -79,11 +79,15 @@ This repository solves that by focusing on:
 
 * **agent-recall** — Drop-in persistent memory for LLM agents. Short-term, long-term, and episodic memory layers with local-first, framework-agnostic design.
   * Source: [agent-recall/](agent-recall/)
-  * Docs: [agent-recall/README.md](agent-recall/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps/agent-recall)
+  * Docs: [agent-recall/README.md](agent-recall/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/agent-recall)
 
 * **json-storyteller** — React component that transforms raw JSON into human-readable narratives using any LLM provider (Anthropic, OpenAI, Mistral, custom).
   * Source: [json-storyteller/](json-storyteller/)
-  * Docs: [json-storyteller/README.md](json-storyteller/README.md) · [interactive docs](https://kumar-rohit.github.io/llm-apps/json-storyteller)
+  * Docs: [json-storyteller/README.md](json-storyteller/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/json-storyteller)
+
+* **agent-council** — Composable multi-agent reasoning pipeline for React. Assemble a council of agents with custom roles, choose sequential or parallel orchestration, and get a live visual reasoning trace.
+  * Source: [agent-council/](agent-council/)
+  * Docs: [agent-council/README.md](agent-council/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/agent-council)
 
 ---
 
@@ -113,6 +117,7 @@ Priorities:
 |---|---|---|
 | ✅ Live | **agent-recall** | Persistent memory library for LLM agents |
 | ✅ Live | **json-storyteller** | React component for LLM-powered JSON narration |
+| ✅ Live | **agent-council** | Composable multi-agent reasoning pipeline for React |
 | 🔜 Soon | Multi-tool reasoning agent | Task-planning agent with web search, code exec & file tools |
 | 🔜 Soon | RAG reference implementation | Production-grade retrieval-augmented generation pipeline |
 | 📋 Planned | Model benchmarking toolkit | Cost vs accuracy comparisons across providers & tasks |
@@ -130,8 +135,10 @@ docs/
 ├── index.html              ← hub landing page (all projects)
 ├── agent-recall/
 │   └── index.html          ← agent-recall interactive docs
-└── json-storyteller/
-    └── index.html          ← json-storyteller interactive docs
+├── json-storyteller/
+│   └── index.html          ← json-storyteller interactive docs
+└── agent-council/
+    └── index.html          ← agent-council interactive docs
 ```
 
 ---

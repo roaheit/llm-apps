@@ -16,7 +16,7 @@
     --accent3: #f5a623;
     --accent4: #c77dff;
     --text: #d4e0ec;
-    --muted: #5a7080;
+    --muted: #7a909f;
     --code-bg: #0a1019;
   }
 
@@ -175,14 +175,14 @@
     color: var(--muted); margin-left: auto; margin-right: auto;
   }
   .terminal-body { padding: 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.8; }
-  .t-comment { color: #3d5a6a; }
+  .t-comment { color: #6e8fa0; }
   .t-keyword { color: var(--accent2); }
   .t-fn { color: var(--accent4); }
   .t-str { color: var(--accent3); }
   .t-tag { color: var(--accent4); }
   .t-attr { color: var(--accent2); }
   .t-val { color: var(--accent3); }
-  .t-output { color: #7a5aab; font-style: italic; }
+  .t-output { color: #a07acd; font-style: italic; }
   .t-prompt { color: var(--muted); }
 
   .type-line { overflow: hidden; white-space: nowrap; }
@@ -336,20 +336,27 @@
     .footer-inner { flex-direction: column; text-align: center; }
     .stat { min-width: 120px; }
   }
+
+  /* Focus visibility for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--accent4);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<div id="particles"></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div id="particles" aria-hidden="true"></div>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-glow"></div>
+  <div class="hero-glow" aria-hidden="true"></div>
 
   <div class="badge">
-    <span class="badge-dot"></span>
+    <span class="badge-dot" aria-hidden="true"></span>
     v1.0 &mdash; React + TypeScript
   </div>
 
