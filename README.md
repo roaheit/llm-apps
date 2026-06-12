@@ -89,6 +89,10 @@ This repository solves that by focusing on:
   * Source: [agent-council/](agent-council/)
   * Docs: [agent-council/README.md](agent-council/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/agent-council)
 
+* **context-forge** — Production-grade retrieval-augmented generation pipeline for React. Index files, URLs, or plain text — query with any LLM. In-memory vector store by default, fully pluggable for Pinecone, Weaviate, pgvector, and more.
+  * Source: [context-forge/](context-forge/)
+  * Docs: [context-forge/README.md](context-forge/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/context-forge)
+
 ---
 
 ## 🏗️ Tech Philosophy
