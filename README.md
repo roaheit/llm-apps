@@ -122,8 +122,8 @@ Priorities:
 | ✅ Live | **agent-recall** | Persistent memory library for LLM agents |
 | ✅ Live | **json-storyteller** | React component for LLM-powered JSON narration |
 | ✅ Live | **agent-council** | Composable multi-agent reasoning pipeline for React |
+| ✅ Live | **context-forge** | Production-grade retrieval-augmented generation pipeline for React |
 | 🔜 Soon | Multi-tool reasoning agent | Task-planning agent with web search, code exec & file tools |
-| 🔜 Soon | RAG reference implementation | Production-grade retrieval-augmented generation pipeline |
 | 📋 Planned | Model benchmarking toolkit | Cost vs accuracy comparisons across providers & tasks |
 | 📋 Planned | Enterprise AI reference architecture | Full-stack blueprint for production AI systems |
 | 📋 Planned | Deployment & performance guide | Practical patterns for shipping LLM apps to production |
