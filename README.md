@@ -93,6 +93,14 @@ This repository solves that by focusing on:
   * Source: [context-forge/](context-forge/)
   * Docs: [context-forge/README.md](context-forge/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/context-forge)
 
+* **sql-narrator** — React component that explains SQL queries — and what their results actually mean — in plain English. Multi-dialect (Snowflake, Postgres, MySQL, BigQuery, and more), four tones, and works with any LLM provider.
+  * Source: [sql-narrator/](sql-narrator/)
+  * Docs: [sql-narrator/README.md](sql-narrator/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/sql-narrator)
+
+* **pipeline-explainer** — Paste Snowflake `CREATE TASK` DDL (or any DAG as JSON), get an interactive SVG graph plus an LLM-generated narration of how the pipeline flows — fan-out, fan-in, stream conditions, finalizers, and risks.
+  * Source: [pipeline-explainer/](pipeline-explainer/)
+  * Docs: [pipeline-explainer/README.md](pipeline-explainer/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/pipeline-explainer)
+
 ---
 
 ## 🏗️ Tech Philosophy
@@ -123,6 +131,8 @@ Priorities:
 | ✅ Live | **json-storyteller** | React component for LLM-powered JSON narration |
 | ✅ Live | **agent-council** | Composable multi-agent reasoning pipeline for React |
 | ✅ Live | **context-forge** | Production-grade retrieval-augmented generation pipeline for React |
+| ✅ Live | **sql-narrator** | React component that explains SQL queries and results in plain English |
+| ✅ Live | **pipeline-explainer** | Visualize and narrate data pipeline DAGs (Snowflake tasks, generic JSON) |
 | 🔜 Soon | Multi-tool reasoning agent | Task-planning agent with web search, code exec & file tools |
 | 📋 Planned | Model benchmarking toolkit | Cost vs accuracy comparisons across providers & tasks |
 | 📋 Planned | Enterprise AI reference architecture | Full-stack blueprint for production AI systems |
@@ -141,8 +151,14 @@ docs/
 │   └── index.html          ← agent-recall interactive docs
 ├── json-storyteller/
 │   └── index.html          ← json-storyteller interactive docs
-└── agent-council/
-    └── index.html          ← agent-council interactive docs
+├── agent-council/
+│   └── index.html          ← agent-council interactive docs
+├── context-forge/
+│   └── index.html          ← context-forge interactive docs
+├── sql-narrator/
+│   └── index.html          ← sql-narrator interactive docs
+└── pipeline-explainer/
+    └── index.html          ← pipeline-explainer interactive docs
 ```
 
 ---
