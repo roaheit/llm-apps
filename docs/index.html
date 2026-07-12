@@ -381,7 +381,7 @@
 
 <div class="stats-bar reveal">
   <div class="stat">
-    <span class="stat-num" data-target="4">0</span>
+    <span class="stat-num" data-target="6">0</span>
     <span class="stat-label">Projects</span>
   </div>
   <div class="stat">
@@ -510,6 +510,58 @@
         </div>
       </div>
 
+      <div class="project-card">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <span class="project-tag tag-react">React</span>
+          <span class="project-tag tag-ts">TypeScript</span>
+        </div>
+        <div class="project-title">sql<span>-narrator</span></div>
+        <p class="project-desc">
+          A React component that explains SQL queries &mdash; and what their results actually mean &mdash; in plain English. Multi-dialect, four tones, and works with any LLM provider.
+        </p>
+        <ul class="project-features">
+          <li>Six SQL dialects: Snowflake, Postgres, MySQL, BigQuery, more</li>
+          <li>Four tones: narrative, analyst, casual, teacher</li>
+          <li>Interprets result sets in context of the query</li>
+          <li>Flags caveats: perf smells, ambiguous joins, dialect quirks</li>
+        </ul>
+        <div class="project-footer">
+          <div class="project-links">
+            <a href="https://github.com/roaheit/llm-apps/tree/main/sql-narrator">GitHub</a>
+            <a href="https://www.npmjs.com/package/sql-narrator">npm</a>
+          </div>
+          <a href="sql-narrator/index.html" class="project-arrow">
+            Docs &rarr;
+          </a>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <span class="project-tag tag-react">React</span>
+          <span class="project-tag tag-ts">TypeScript</span>
+        </div>
+        <div class="project-title">pipeline<span>-explainer</span></div>
+        <p class="project-desc">
+          Paste Snowflake <code>CREATE TASK</code> DDL (or any DAG as JSON), get an interactive SVG graph plus an LLM-generated narration of how the pipeline flows &mdash; fan-out, fan-in, stream conditions, finalizers, and risks.
+        </p>
+        <ul class="project-features">
+          <li>Built-in Snowflake DDL parser: <code>AFTER</code>, <code>WHEN</code>, <code>FINALIZE</code></li>
+          <li>SVG DAG with click-to-inspect per-node notes</li>
+          <li>Bring any graph: Airflow, Dagster, dbt &mdash; pass a JSON pipeline</li>
+          <li>Flow narration + risk observations from any LLM provider</li>
+        </ul>
+        <div class="project-footer">
+          <div class="project-links">
+            <a href="https://github.com/roaheit/llm-apps/tree/main/pipeline-explainer">GitHub</a>
+            <a href="https://www.npmjs.com/package/pipeline-explainer">npm</a>
+          </div>
+          <a href="pipeline-explainer/index.html" class="project-arrow">
+            Docs &rarr;
+          </a>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -578,14 +630,24 @@
         <span class="roadmap-desc">Composable multi-agent reasoning pipeline for React</span>
       </li>
       <li class="roadmap-item">
-        <span class="roadmap-status status-soon">Soon</span>
-        <span class="roadmap-name">Multi-tool reasoning agent</span>
-        <span class="roadmap-desc">Task-planning agent with web search, code exec &amp; file tools</span>
-      </li>
-      <li class="roadmap-item">
         <span class="roadmap-status status-live">Live</span>
         <span class="roadmap-name">context-forge</span>
         <span class="roadmap-desc">Production-grade retrieval-augmented generation pipeline for React</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="roadmap-status status-live">Live</span>
+        <span class="roadmap-name">sql-narrator</span>
+        <span class="roadmap-desc">React component that explains SQL queries and results in plain English</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="roadmap-status status-live">Live</span>
+        <span class="roadmap-name">pipeline-explainer</span>
+        <span class="roadmap-desc">Visualize and narrate data pipeline DAGs (Snowflake tasks, generic JSON)</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="roadmap-status status-soon">Soon</span>
+        <span class="roadmap-name">Multi-tool reasoning agent</span>
+        <span class="roadmap-desc">Task-planning agent with web search, code exec &amp; file tools</span>
       </li>
       <li class="roadmap-item">
         <span class="roadmap-status status-planned">Planned</span>

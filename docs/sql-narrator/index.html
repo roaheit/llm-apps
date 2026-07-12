@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>sql-narrator &mdash; LLM-powered SQL explanations for React | llm-apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080b0f;
+    --surface: #0e1318;
+    --border: #1c2530;
+    --accent: #22d3ee;
+    --accent2: #0af;
+    --accent3: #f5a623;
+    --accent4: #c77dff;
+    --text: #d4e0ec;
+    --muted: #7a909f;
+    --code-bg: #0a1019;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed; width: 10px; height: 10px;
+    background: var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, opacity 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.2s, height 0.2s, opacity 0.2s;
+    opacity: 0.5;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(34,211,238,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,211,238,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+  @keyframes gridPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  .hero {
+    position: relative; min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4rem 2rem; z-index: 1; text-align: center;
+  }
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 70%);
+    pointer-events: none; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--accent); color: var(--accent);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; padding: 6px 14px; border-radius: 2px;
+    margin-bottom: 2.5rem; animation: fadeUp 0.6s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; background: var(--accent);
+    border-radius: 50%; animation: blink 1.4s step-end infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  h1 {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 800; line-height: 0.95; letter-spacing: -0.04em;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  .h1-accent { color: var(--accent); }
+
+  .tagline {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+    color: var(--muted); margin-top: 1.5rem;
+    letter-spacing: 0.02em; max-width: 560px; line-height: 1.7;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 0.08em; padding: 12px 28px;
+    border-radius: 2px; text-decoration: none; transition: all 0.2s; cursor: none;
+  }
+  .btn-primary { background: var(--accent); color: #000; font-weight: 500; }
+  .btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34,211,238,0.3); }
+  .btn-outline { border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .stats-bar {
+    display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    z-index: 1; position: relative;
+  }
+  .stat {
+    flex: 1; min-width: 160px; padding: 2rem 1.5rem;
+    text-align: center; border-right: 1px solid var(--border); transition: background 0.25s;
+  }
+  .stat:last-child { border-right: none; }
+  .stat:hover { background: rgba(34,211,238,0.04); }
+  .stat-num {
+    font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em;
+    color: var(--accent); display: block; font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); letter-spacing: 0.1em; margin-top: 4px;
+    display: block; text-transform: uppercase;
+  }
+
+  .terminal-wrap {
+    width: 100%; max-width: 780px; margin-top: 4rem;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .terminal {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(34,211,238,0.05), 0 40px 80px rgba(0,0,0,0.6);
+    animation: borderGlow 4s ease-in-out infinite;
+  }
+  @keyframes borderGlow {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(34,211,238,0.05), 0 40px 80px rgba(0,0,0,0.6); }
+    50% { box-shadow: 0 0 0 1px rgba(34,211,238,0.15), 0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(34,211,238,0.05); }
+  }
+  .terminal-bar {
+    background: #131920; padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-dot.red   { background: #ff5f57; }
+  .t-dot.yellow{ background: #febc2e; }
+  .t-dot.green { background: #28c840; }
+  .t-title {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); margin-left: auto; margin-right: auto;
+  }
+  .terminal-body { padding: 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.8; }
+  .t-comment { color: #6e8fa0; }
+  .t-keyword { color: var(--accent2); }
+  .t-fn { color: var(--accent); }
+  .t-str { color: var(--accent3); }
+  .t-tag { color: var(--accent); }
+  .t-attr { color: var(--accent2); }
+  .t-val { color: var(--accent3); }
+  .t-sql-kw { color: var(--accent4); font-weight: 600; }
+
+  .type-line { overflow: hidden; white-space: nowrap; }
+  .type-line:nth-child(1)  { animation: typeIn 0.4s 1.0s both; }
+  .type-line:nth-child(2)  { animation: typeIn 0.4s 1.2s both; }
+  .type-line:nth-child(3)  { animation: typeIn 0.4s 1.4s both; }
+  .type-line:nth-child(4)  { animation: typeIn 0.4s 1.6s both; }
+  .type-line:nth-child(5)  { animation: typeIn 0.4s 1.8s both; }
+  .type-line:nth-child(6)  { animation: typeIn 0.4s 2.0s both; }
+  .type-line:nth-child(7)  { animation: typeIn 0.4s 2.2s both; }
+  .type-line:nth-child(8)  { animation: typeIn 0.4s 2.4s both; }
+  .type-line:nth-child(9)  { animation: typeIn 0.4s 2.6s both; }
+  .type-line:nth-child(10) { animation: typeIn 0.4s 2.8s both; }
+  .type-line:nth-child(11) { animation: typeIn 0.4s 3.0s both; }
+  .type-line:nth-child(12) { animation: typeIn 0.4s 3.2s both; }
+  @keyframes typeIn {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 2em; }
+  }
+
+  section { position: relative; z-index: 1; }
+  .section-inner { max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; }
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.2em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+  h2 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 1rem;
+  }
+  .section-sub {
+    font-family: 'DM Mono', monospace; color: var(--muted);
+    font-size: 0.9rem; max-width: 520px; line-height: 1.7;
+  }
+
+  .dialects-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 3rem;
+  }
+  .dialect-card {
+    background: var(--surface); padding: 1.5rem;
+    transition: background 0.25s; text-align: center;
+  }
+  .dialect-card:hover { background: #111820; }
+  .dialect-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .dialect-val {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    color: var(--accent); letter-spacing: 0.08em;
+  }
+
+  .tones-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden; margin-top: 3rem;
+  }
+  .tone-card {
+    background: var(--surface); padding: 2rem;
+    transition: background 0.25s; position: relative; overflow: hidden;
+  }
+  .tone-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(34,211,238,0.04));
+    pointer-events: none;
+  }
+  .tone-card:hover { background: #111820; }
+  .tone-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+  .tone-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .tone-val {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    color: var(--accent); margin-bottom: 0.8rem; letter-spacing: 0.08em;
+  }
+  .tone-desc {
+    font-family: 'DM Mono', monospace; font-size: 0.74rem;
+    color: var(--muted); line-height: 1.65;
+  }
+
+  .providers-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 3rem;
+  }
+  .provider-card { background: var(--surface); padding: 2rem; transition: background 0.25s; }
+  .provider-card:hover { background: #111820; }
+  .provider-name { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .provider-value {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--accent); margin-bottom: 0.8rem;
+  }
+  .provider-model {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); line-height: 1.6;
+  }
+
+  /* Output card mock */
+  .narration-mock {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; margin-top: 3rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  .nm-header {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: #131920;
+    font-family: 'DM Mono', monospace;
+  }
+  .nm-header .nm-title { font-weight: 700; font-size: 0.85rem; color: var(--text); }
+  .nm-header .nm-meta { font-size: 0.72rem; color: var(--muted); }
+  .nm-body { padding: 1.5rem; font-size: 0.92rem; line-height: 1.65; }
+  .nm-summary { font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+  .nm-label {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.1em; color: var(--muted);
+    text-transform: uppercase; margin: 1.2rem 0 0.4rem;
+  }
+  .nm-para { color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+  .nm-caveat {
+    margin-top: 0.6rem; padding: 8px 12px;
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.25);
+    border-radius: 4px; font-size: 0.82rem;
+    color: #f5c26b;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .install-box {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.2rem 1.5rem; margin-top: 2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .install-cmd { color: var(--accent); }
+  .copy-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    padding: 5px 12px; border-radius: 2px; cursor: none;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--accent); color: var(--accent); }
+
+  .api-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3rem;
+  }
+  .api-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .api-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .api-method {
+    font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    color: var(--accent); margin-bottom: 0.5rem; word-break: break-word;
+  }
+  .api-desc {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); line-height: 1.6;
+  }
+  .api-desc code {
+    background: rgba(34,211,238,0.08);
+    color: var(--accent); padding: 1px 5px; border-radius: 2px;
+  }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 2.5rem 2rem;
+    text-align: center; z-index: 1; position: relative;
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1100px; margin: 0 auto; flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-brand { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+  .footer-brand span { color: var(--accent); }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); text-decoration: none; transition: color 0.2s; cursor: none;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .particle {
+    position: fixed; border-radius: 50%;
+    background: var(--accent); pointer-events: none; z-index: 0;
+    animation: float linear infinite; opacity: 0;
+  }
+  @keyframes float {
+    0% { transform: translateY(110vh) scale(0); opacity: 0; }
+    10% { opacity: 0.1; }
+    90% { opacity: 0.03; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  @media (max-width: 768px) {
+    .api-grid { grid-template-columns: 1fr; }
+    .footer-inner { flex-direction: column; text-align: center; }
+    .stat { min-width: 120px; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div id="particles" aria-hidden="true"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+
+  <div class="badge">
+    <span class="badge-dot" aria-hidden="true"></span>
+    v0.1 &mdash; React + TypeScript
+  </div>
+
+  <h1>sql<span class="h1-accent">-narrator</span></h1>
+  <p class="tagline">
+    A React component that explains SQL queries<br/>
+    &mdash; and what their results actually mean &mdash; in plain English.
+  </p>
+
+  <div class="hero-cta">
+    <a href="https://github.com/roaheit/llm-apps/tree/main/sql-narrator" class="btn btn-primary">
+      View on GitHub &rarr;
+    </a>
+    <a href="#install" class="btn btn-outline">
+      npm install
+    </a>
+    <a href="../index.html" class="btn btn-outline">
+      &larr; All Projects
+    </a>
+  </div>
+
+  <div class="terminal-wrap">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="t-dot red"></span>
+        <span class="t-dot yellow"></span>
+        <span class="t-dot green"></span>
+        <span class="t-title">RevenueByRegion.tsx</span>
+      </div>
+      <div class="terminal-body">
+        <div class="type-line"><span class="t-keyword">import</span> { SqlNarrator } <span class="t-keyword">from</span> <span class="t-str">"sql-narrator"</span></div>
+        <div class="type-line"> </div>
+        <div class="type-line">&lt;<span class="t-tag">SqlNarrator</span></div>
+        <div class="type-line">&nbsp;&nbsp;<span class="t-attr">llm</span>={{ provider: <span class="t-str">"anthropic"</span>, apiKey: KEY }}</div>
+        <div class="type-line">&nbsp;&nbsp;<span class="t-attr">dialect</span>=<span class="t-str">"snowflake"</span></div>
+        <div class="type-line">&nbsp;&nbsp;<span class="t-attr">tone</span>=<span class="t-str">"analyst"</span></div>
+        <div class="type-line">&nbsp;&nbsp;<span class="t-attr">sql</span>={`</div>
+        <div class="type-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-sql-kw">SELECT</span> region, <span class="t-sql-kw">SUM</span>(amount) <span class="t-sql-kw">AS</span> revenue</div>
+        <div class="type-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-sql-kw">FROM</span> sales <span class="t-sql-kw">WHERE</span> order_date &gt;= ...</div>
+        <div class="type-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-sql-kw">GROUP BY</span> region <span class="t-sql-kw">ORDER BY</span> revenue <span class="t-sql-kw">DESC</span></div>
+        <div class="type-line">&nbsp;&nbsp;`}</div>
+        <div class="type-line">/&gt;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Narration output mock -->
+  <div class="narration-mock" style="max-width: 780px; width: 100%;">
+    <div class="nm-header">
+      <span class="nm-title">SQL Narrator</span>
+      <span class="nm-meta">snowflake &middot; analyst</span>
+    </div>
+    <div class="nm-body">
+      <div class="nm-summary">Ranks total revenue by region for orders in the last three months.</div>
+      <div class="nm-label">What the query does</div>
+      <div class="nm-para">Aggregates <em>amount</em> from the <em>sales</em> table into a per-region revenue total, filtering to orders whose <em>order_date</em> falls within the last three months (Snowflake's <code>DATEADD</code>), then sorts regions from highest to lowest revenue.</div>
+      <div class="nm-label">What the results mean</div>
+      <div class="nm-para">EMEA leads at $1.24M &mdash; roughly 27% ahead of AMER ($980K) and nearly 3&times; APAC ($445K). The distribution suggests the top two regions are driving the vast majority of quarter revenue.</div>
+      <div class="nm-label">Caveats</div>
+      <div class="nm-caveat">Snowflake's DATEADD is inclusive of today &mdash; results include partial current-day data.</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar reveal">
+  <div class="stat">
+    <span class="stat-num" data-target="4">0</span>
+    <span class="stat-label">LLM Providers</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="6">0</span>
+    <span class="stat-label">SQL Dialects</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="4">0</span>
+    <span class="stat-label">Tones</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="0">0</span>
+    <span class="stat-label">Vendor Lock-in</span>
+  </div>
+</div>
+
+<!-- DIALECTS -->
+<section>
+  <div class="section-inner">
+    <p class="section-label reveal">Dialects</p>
+    <h2 class="reveal">Speaks every<br/>SQL you write.</h2>
+    <p class="section-sub reveal">Set <code>dialect</code> and the LLM interprets your query in that engine's semantics &mdash; date functions, string handling, join quirks, and all.</p>
+
+    <div class="dialects-grid reveal">
+      <div class="dialect-card">
+        <div class="dialect-name">Snowflake</div>
+        <div class="dialect-val">"snowflake"</div>
+      </div>
+      <div class="dialect-card">
+        <div class="dialect-name">Postgres</div>
+        <div class="dialect-val">"postgres"</div>
+      </div>
+      <div class="dialect-card">
+        <div class="dialect-name">MySQL</div>
+        <div class="dialect-val">"mysql"</div>
+      </div>
+      <div class="dialect-card">
+        <div class="dialect-name">SQL Server</div>
+        <div class="dialect-val">"sqlserver"</div>
+      </div>
+      <div class="dialect-card">
+        <div class="dialect-name">BigQuery</div>
+        <div class="dialect-val">"bigquery"</div>
+      </div>
+      <div class="dialect-card">
+        <div class="dialect-name">Oracle</div>
+        <div class="dialect-val">"oracle"</div>
+      </div>
+      <div class="dialect-card">
+        <div class="dialect-name">ANSI (default)</div>
+        <div class="dialect-val">"ansi"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TONES -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Tones</p>
+    <h2 class="reveal">Same query.<br/>Different voice.</h2>
+    <p class="section-sub reveal">Explain the query the way your audience actually reads it &mdash; a PR reviewer, a stakeholder, a new hire, or a Slack thread.</p>
+
+    <div class="tones-grid reveal">
+      <div class="tone-card">
+        <div class="tone-icon">&#x1F4CA;</div>
+        <div class="tone-name">Analyst</div>
+        <div class="tone-val">tone="analyst"</div>
+        <div class="tone-desc">Precise, data-first. Numbers front and center. Ideal for reports and PR reviews.</div>
+      </div>
+      <div class="tone-card">
+        <div class="tone-icon">&#x1F4D6;</div>
+        <div class="tone-name">Narrative</div>
+        <div class="tone-val">tone="narrative"</div>
+        <div class="tone-desc">Flowing prose that tells the story behind the query and its output.</div>
+      </div>
+      <div class="tone-card">
+        <div class="tone-icon">&#x1F4AC;</div>
+        <div class="tone-name">Casual</div>
+        <div class="tone-val">tone="casual"</div>
+        <div class="tone-desc">Conversational, approachable. Great for docs, runbooks, and Slack threads.</div>
+      </div>
+      <div class="tone-card">
+        <div class="tone-icon">&#x1F393;</div>
+        <div class="tone-name">Teacher</div>
+        <div class="tone-val">tone="teacher"</div>
+        <div class="tone-desc">Step-by-step with the "why" behind each clause. Perfect for onboarding.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WITH RESULTS -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">With results</p>
+    <h2 class="reveal">Interprets the<br/>output, too.</h2>
+    <p class="section-sub reveal">Pass <code>results</code> and the narration adds a "what the numbers mean" section &mdash; grounded in the actual rows, not a hallucination.</p>
+
+    <div style="margin-top: 3rem;" class="reveal">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">WithResults.tsx</span>
+        </div>
+        <div class="terminal-body">
+          <div>&lt;<span class="t-tag">SqlNarrator</span></div>
+          <div>&nbsp;&nbsp;<span class="t-attr">llm</span>={{ provider: <span class="t-str">"anthropic"</span>, apiKey: KEY }}</div>
+          <div>&nbsp;&nbsp;<span class="t-attr">sql</span>={query}</div>
+          <div>&nbsp;&nbsp;<span class="t-attr">results</span>={{</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;columns: [<span class="t-str">"REGION"</span>, <span class="t-str">"REVENUE"</span>],</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;rows: [</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="t-str">"EMEA"</span>, <span class="t-val">1240000</span>],</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="t-str">"AMER"</span>, <span class="t-val">980000</span>],</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="t-str">"APAC"</span>, <span class="t-val">445000</span>],</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;],</div>
+          <div>&nbsp;&nbsp;}}</div>
+          <div>&nbsp;&nbsp;<span class="t-attr">context</span>=<span class="t-str">"Nightly against the sales mart"</span></div>
+          <div>/&gt;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROVIDERS -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Providers</p>
+    <h2 class="reveal">Any LLM.<br/>One interface.</h2>
+    <p class="section-sub reveal">Switch providers with a single prop. Point at a LiteLLM, vLLM, or Ollama gateway with <code>provider: "custom"</code>.</p>
+
+    <div class="providers-grid reveal">
+      <div class="provider-card">
+        <div class="provider-name">Anthropic</div>
+        <div class="provider-value">provider: "anthropic"</div>
+        <div class="provider-model">Default: claude-sonnet-4-20250514</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">OpenAI</div>
+        <div class="provider-value">provider: "openai"</div>
+        <div class="provider-model">Default: gpt-4o</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">Mistral</div>
+        <div class="provider-value">provider: "mistral"</div>
+        <div class="provider-model">Default: mistral-medium</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">Custom</div>
+        <div class="provider-value">provider: "custom"</div>
+        <div class="provider-model">Any OpenAI-compatible /chat/completions endpoint (LiteLLM, vLLM, Ollama, Azure gateway)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Install</p>
+    <h2 class="reveal">One install.<br/>Zero config.</h2>
+
+    <div class="install-box reveal">
+      <span class="install-cmd">npm install sql-narrator</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'npm install sql-narrator')">copy</button>
+    </div>
+    <div class="install-box reveal" style="margin-top:0.75rem;">
+      <span class="install-cmd">yarn add sql-narrator</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'yarn add sql-narrator')">copy</button>
+    </div>
+
+    <div style="margin-top: 3rem;" class="reveal">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">HeadlessHook.tsx</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-keyword">import</span> { useSqlNarrator } <span class="t-keyword">from</span> <span class="t-str">"sql-narrator"</span></div>
+          <br/>
+          <div><span class="t-keyword">const</span> { narration, loading, error, narrate } = <span class="t-fn">useSqlNarrator</span>({</div>
+          <div>&nbsp;&nbsp;provider: <span class="t-str">"openai"</span>,</div>
+          <div>&nbsp;&nbsp;apiKey: process.env.NEXT_PUBLIC_OPENAI_KEY,</div>
+          <div>&nbsp;&nbsp;model: <span class="t-str">"gpt-4o"</span>,</div>
+          <div>})</div>
+          <br/>
+          <div><span class="t-keyword">await</span> <span class="t-fn">narrate</span>({ sql: myQuery, dialect: <span class="t-str">"postgres"</span>, tone: <span class="t-str">"teacher"</span> })</div>
+          <div><span class="t-comment">// narration = { summary, queryExplanation, resultsInterpretation?, caveats }</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- API -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Props</p>
+    <h2 class="reveal">Small surface.<br/>Composable core.</h2>
+
+    <div class="api-grid reveal">
+      <div class="api-card">
+        <div class="api-method">llm: LLMConfig</div>
+        <div class="api-desc"><strong>Required.</strong> <code>provider</code>, <code>apiKey</code>, and optionally <code>model</code>, <code>baseUrl</code>, <code>headers</code>.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">sql: string</div>
+        <div class="api-desc"><strong>Required.</strong> The query to narrate.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">results?: QueryResults</div>
+        <div class="api-desc"><code>{ columns, rows, totalRowCount? }</code>. When provided, enables results interpretation.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">dialect?: SqlDialect</div>
+        <div class="api-desc">One of <code>snowflake</code>, <code>postgres</code>, <code>mysql</code>, <code>sqlserver</code>, <code>bigquery</code>, <code>oracle</code>, <code>ansi</code>. Defaults to <code>ansi</code>.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">tone?: NarrationTone</div>
+        <div class="api-desc"><code>narrative</code>, <code>analyst</code>, <code>casual</code>, <code>teacher</code>. Defaults to <code>analyst</code>.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">context?: string</div>
+        <div class="api-desc">Business context, e.g. <em>"runs nightly against the sales mart"</em>.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">maxSampleRows?: number</div>
+        <div class="api-desc">Cap on result rows sent to the LLM. Defaults to <code>20</code>.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">auto?: boolean</div>
+        <div class="api-desc">Re-narrate when <code>sql</code> or <code>results</code> change. Defaults to <code>true</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">sql<span>-narrator</span></div>
+    <div class="footer-links">
+      <a href="https://github.com/roaheit/llm-apps/tree/main/sql-narrator">GitHub</a>
+      <a href="https://www.npmjs.com/package/sql-narrator">npm</a>
+      <a href="https://github.com/roaheit/llm-apps/issues">Issues</a>
+      <a href="../index.html">&larr; All Projects</a>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">
+      MIT License
+    </div>
+  </div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top  = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ring.style.width = '56px'; ring.style.height = '56px'; ring.style.opacity = '0.8';
+  });
+  el.addEventListener('mouseleave', () => {
+    ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.5';
+  });
+});
+
+const particleContainer = document.getElementById('particles');
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 3 + 1;
+  p.style.cssText = `
+    width: ${size}px; height: ${size}px;
+    left: ${Math.random() * 100}vw;
+    animation-duration: ${12 + Math.random() * 20}s;
+    animation-delay: ${Math.random() * 15}s;
+  `;
+  particleContainer.appendChild(p);
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+function animateCount(el, target, duration = 1200) {
+  if (target === 0) { el.textContent = '0'; return; }
+  let start = null;
+  const step = ts => {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('[data-target]').forEach(el => {
+        animateCount(el, parseInt(el.dataset.target));
+      });
+      statsObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stats-bar').forEach(el => statsObserver.observe(el));
+
+function copyInstall(btn, text) {
+  navigator.clipboard.writeText(text);
+  btn.textContent = 'copied \u2713';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+}
+</script>
+</body>
+</html>
