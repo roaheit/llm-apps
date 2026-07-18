@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { callLLM } from "../adapters";
+import { complete } from "llm-core";
 import type { UseJsonStorytellerOptions, UseJsonStorytellerReturn, StoryTone } from "../types";
 
 const TONE_PROMPTS: Record<StoryTone, string> = {
@@ -46,7 +46,7 @@ export function useJsonStoryteller({
       const prompt = buildPrompt(jsonString, tone);
 
       try {
-        const text = await callLLM(prompt, llm);
+        const { text } = await complete(llm, { prompt });
         if (!text) throw new Error("Empty response received. Please try again.");
         setStory(text);
         onStoryGenerated?.(text, tone);

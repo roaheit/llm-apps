@@ -1,37 +1,7 @@
 export type StoryTone = "narrative" | "analyst" | "casual" | "poetic";
 
-export type LLMProvider = "anthropic" | "openai" | "mistral" | "custom";
-
-export interface LLMConfig {
-  /**
-   * The LLM provider to use.
-   * Use "custom" to supply your own adapter function.
-   */
-  provider: LLMProvider;
-
-  /**
-   * API key for the chosen provider.
-   */
-  apiKey: string;
-
-  /**
-   * Model name to use. Falls back to a sensible default per provider.
-   * e.g. "gpt-4o", "claude-sonnet-4-20250514", "mistral-medium"
-   */
-  model?: string;
-
-  /**
-   * Max tokens for the response.
-   * @default 1000
-   */
-  maxTokens?: number;
-
-  /**
-   * Provide a fully custom adapter if your provider isn't built-in.
-   * Receives the prompt string, returns the generated story string.
-   */
-  adapter?: (prompt: string) => Promise<string>;
-}
+import type { LLMConfig, LLMProvider } from "llm-core";
+export type { LLMConfig, LLMProvider };
 
 export interface JsonStorytellerProps {
   /**

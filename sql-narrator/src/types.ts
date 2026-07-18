@@ -1,15 +1,4 @@
-export type LLMProvider = "anthropic" | "openai" | "mistral" | "custom";
-
-export interface LLMConfig {
-  provider: LLMProvider;
-  apiKey?: string;
-  /** Override the default model for the provider. */
-  model?: string;
-  /** Custom base URL (required when provider is "custom", e.g. a LiteLLM gateway). */
-  baseUrl?: string;
-  /** Extra headers merged into the request. */
-  headers?: Record<string, string>;
-}
+export type { LLMConfig, LLMProvider } from "llm-core";
 
 export type NarrationTone = "narrative" | "analyst" | "casual" | "teacher";
 

@@ -18,6 +18,9 @@
   ],
   "author": "roaheit",
   "license": "MIT",
+  "dependencies": {
+    "llm-core": "^0.1.0"
+  },
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-dom": ">=17.0.0"

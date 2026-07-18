@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { LLMConfig } from "./adapters";
+import type { LLMConfig } from "./types";
 import { DagView } from "./DagView";
 import { parseSnowflakeTasks, fromJson } from "./parsers";
 import type { Pipeline } from "./types";

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { getAdapter } from "./adapters";
+import { complete } from "llm-core";
 import { buildPrompt, parseNarration } from "./prompt";
 import type { LLMConfig, Narration, NarrationRequest, NarratorState } from "./types";
 
@@ -21,8 +21,7 @@ export function useSqlNarrator(llm: LLMConfig): UseSqlNarratorReturn {
       const id = ++requestId.current;
       setState((s) => ({ ...s, loading: true, error: null }));
       try {
-        const adapter = getAdapter(llm);
-        const raw = await adapter.complete(buildPrompt(req), llm);
+        const { text: raw } = await complete(llm, { prompt: buildPrompt(req) });
         const narration = parseNarration(raw) as Narration;
         if (id === requestId.current) {
           setState({ narration, loading: false, error: null });

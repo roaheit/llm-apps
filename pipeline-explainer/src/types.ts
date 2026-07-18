@@ -1,4 +1,4 @@
-export type { LLMConfig, LLMProvider } from "./adapters";
+export type { LLMConfig, LLMProvider } from "llm-core";
 
 export interface PipelineNode {
   /** Unique task/node name. */
