@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "Composable multi-agent reasoning pipeline for React. Define a council of agents with custom roles, choose sequential or parallel orchestration, plug in any LLM — get a live visual reasoning trace.",
   "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "sideEffects": false,
   "files": ["dist", "README.md"],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "vite",
-    "lint": "eslint src"
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "agent-council", "multi-agent", "ai", "llm", "reasoning", "anthropic", "openai",
@@ -20,12 +21,6 @@
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-dom": ">=17.0.0"
-  },
-  "devDependencies": {
-    "@types/react": "^18.0.0",
-    "typescript": "^5.0.0",
-    "rollup": "^4.0.0",
-    "vite": "^5.0.0"
   },
   "repository": {
     "type": "git",

@@ -3,32 +3,28 @@
   "version": "1.0.0",
   "description": "Production-grade retrieval-augmented generation pipeline for React. Index files, URLs, or text — query with any LLM. In-memory vector store by default, pluggable for Pinecone, Weaviate, pgvector, and more.",
   "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "sideEffects": false,
   "files": ["dist", "README.md"],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "vite",
-    "lint": "eslint src"
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "rag", "retrieval-augmented-generation", "vector-store", "embeddings",
-    "llm", "ai", "anthropic", "openai", "react", "component", "ilm-apps"
+    "llm", "ai", "anthropic", "openai", "react", "component", "llm-apps"
   ],
-  "author": "ilm-apps",
+  "author": "roaheit",
   "license": "MIT",
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-dom": ">=17.0.0"
   },
-  "devDependencies": {
-    "@types/react": "^18.0.0",
-    "typescript": "^5.0.0",
-    "rollup": "^4.0.0",
-    "vite": "^5.0.0"
-  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ilm-apps/context-forge"
+    "url": "https://github.com/roaheit/llm-apps",
+    "directory": "context-forge"
   }
 }

@@ -1,0 +1,34 @@
+{
+  "name": "llm-apps",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A curated collection of real-world LLM applications, agents, and reusable React components.",
+  "license": "MIT",
+  "author": "roaheit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/roaheit/llm-apps"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "workspaces": [
+    "agent-council",
+    "context-forge",
+    "json-storyteller",
+    "pipeline-explainer",
+    "sql-narrator",
+    "tool-pilot"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  }
+}
