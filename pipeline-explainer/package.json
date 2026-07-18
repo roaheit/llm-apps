@@ -3,21 +3,24 @@
   "version": "0.1.0",
   "description": "Visualize and narrate data pipeline DAGs (Snowflake tasks, generic JSON) with any LLM provider — a React component.",
   "keywords": ["snowflake", "dag", "pipeline", "llm", "react", "airflow", "tasks", "visualization"],
+  "author": "roaheit",
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/ilm-apps/pipeline-explainer" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/roaheit/llm-apps",
+    "directory": "pipeline-explainer"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "sideEffects": false,
+  "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format esm --watch",
     "typecheck": "tsc --noEmit"
   },
-  "peerDependencies": { "react": ">=17" },
-  "devDependencies": {
-    "@types/react": "^18.3.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.4.0"
+  "peerDependencies": {
+    "react": ">=17"
   }
 }
