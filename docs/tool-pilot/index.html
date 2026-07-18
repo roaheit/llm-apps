@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>tool-pilot &mdash; Task-planning AI agent with pluggable tools | llm-apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080b0f;
+    --surface: #0e1318;
+    --border: #1c2530;
+    --accent: #0af;
+    --accent2: #f5a623;
+    --accent4: #c77dff;
+    --text: #d4e0ec;
+    --muted: #7a909f;
+    --code-bg: #0a1019;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed; width: 10px; height: 10px;
+    background: var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, opacity 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.2s, height 0.2s, opacity 0.2s;
+    opacity: 0.5;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,170,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,170,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+  @keyframes gridPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  .hero {
+    position: relative; min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4rem 2rem; z-index: 1; text-align: center;
+  }
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,170,255,0.07) 0%, transparent 70%);
+    pointer-events: none; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--accent); color: var(--accent);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; padding: 6px 14px; border-radius: 2px;
+    margin-bottom: 2.5rem; animation: fadeUp 0.6s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; background: var(--accent);
+    border-radius: 50%; animation: blink 1.4s step-end infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  h1 {
+    font-size: clamp(3.5rem, 9vw, 7.5rem);
+    font-weight: 800; line-height: 0.95; letter-spacing: -0.04em;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  .h1-accent { color: var(--accent); }
+
+  .tagline {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+    color: var(--muted); margin-top: 1.5rem;
+    letter-spacing: 0.02em; max-width: 540px; line-height: 1.7;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 0.08em; padding: 12px 28px;
+    border-radius: 2px; text-decoration: none; transition: all 0.2s; cursor: none;
+  }
+  .btn-primary { background: var(--accent); color: #000; font-weight: 500; }
+  .btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,170,255,0.3); }
+  .btn-outline { border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .stats-bar {
+    display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    z-index: 1; position: relative;
+  }
+  .stat {
+    flex: 1; min-width: 160px; padding: 2rem 1.5rem;
+    text-align: center; border-right: 1px solid var(--border); transition: background 0.25s;
+  }
+  .stat:last-child { border-right: none; }
+  .stat:hover { background: rgba(0,170,255,0.04); }
+  .stat-num {
+    font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em;
+    color: var(--accent); display: block; font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); letter-spacing: 0.1em; margin-top: 4px;
+    display: block; text-transform: uppercase;
+  }
+
+  .terminal-wrap {
+    width: 100%; max-width: 760px; margin-top: 4rem;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .terminal {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,170,255,0.05), 0 40px 80px rgba(0,0,0,0.6);
+    animation: borderGlow 4s ease-in-out infinite;
+  }
+  @keyframes borderGlow {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(0,170,255,0.05), 0 40px 80px rgba(0,0,0,0.6); }
+    50% { box-shadow: 0 0 0 1px rgba(0,170,255,0.15), 0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(0,170,255,0.05); }
+  }
+  .terminal-bar {
+    background: #131920; padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-dot.red   { background: #ff5f57; }
+  .t-dot.yellow{ background: #febc2e; }
+  .t-dot.green { background: #28c840; }
+  .t-title {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); margin-left: auto; margin-right: auto;
+  }
+  .terminal-body { padding: 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.8; }
+  .t-comment { color: #6e8fa0; }
+  .t-keyword { color: var(--accent); }
+  .t-fn { color: var(--accent2); }
+  .t-str { color: var(--accent2); }
+  .t-tag { color: var(--accent); }
+  .t-attr { color: var(--accent2); }
+
+  .type-line { overflow: hidden; white-space: nowrap; }
+  .type-line:nth-child(1)  { animation: typeIn 0.4s 1.0s both; }
+  .type-line:nth-child(2)  { animation: typeIn 0.4s 1.3s both; }
+  .type-line:nth-child(3)  { animation: typeIn 0.4s 1.6s both; }
+  .type-line:nth-child(4)  { animation: typeIn 0.4s 1.9s both; }
+  .type-line:nth-child(5)  { animation: typeIn 0.4s 2.2s both; }
+  .type-line:nth-child(6)  { animation: typeIn 0.4s 2.5s both; }
+  .type-line:nth-child(7)  { animation: typeIn 0.4s 2.8s both; }
+  .type-line:nth-child(8)  { animation: typeIn 0.4s 3.1s both; }
+  .type-line:nth-child(9)  { animation: typeIn 0.4s 3.4s both; }
+  .type-line:nth-child(10) { animation: typeIn 0.4s 3.7s both; }
+  @keyframes typeIn {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 2em; }
+  }
+
+  section { position: relative; z-index: 1; }
+  .section-inner { max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; }
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.2em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+  h2 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 1rem;
+  }
+  .section-sub {
+    font-family: 'DM Mono', monospace; color: var(--muted);
+    font-size: 0.9rem; max-width: 480px; line-height: 1.7;
+  }
+
+  .tools-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 3rem;
+  }
+  .tool-card { background: var(--surface); padding: 2.5rem; transition: background 0.25s; position: relative; overflow: hidden; }
+  .tool-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(0,170,255,0.04));
+    pointer-events: none;
+  }
+  .tool-card:hover { background: #111820; }
+  .tool-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .tool-name { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .tool-val { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--accent); margin-bottom: 0.8rem; letter-spacing: 0.05em; }
+  .tool-desc { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); line-height: 1.7; }
+
+  .providers-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 3rem;
+  }
+  .provider-card {
+    background: var(--surface); padding: 2rem; transition: background 0.25s; position: relative; overflow: hidden;
+  }
+  .provider-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(0,170,255,0.04));
+    pointer-events: none;
+  }
+  .provider-card:hover { background: #111820; }
+  .provider-name { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .provider-value { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--accent); margin-bottom: 0.8rem; }
+  .provider-model { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); line-height: 1.6; }
+
+  .api-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3rem;
+  }
+  .api-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .api-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .api-method { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--accent); margin-bottom: 0.5rem; }
+  .api-desc { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
+
+  .steps-table {
+    width: 100%; border-collapse: collapse; margin-top: 2.5rem;
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+  }
+  .steps-table th {
+    background: var(--surface); padding: 0.9rem 1.2rem;
+    text-align: left; letter-spacing: 0.08em; color: var(--muted);
+    border-bottom: 1px solid var(--border); font-weight: 600;
+  }
+  .steps-table td {
+    padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border);
+    line-height: 1.55; vertical-align: top;
+  }
+  .steps-table tr:last-child td { border-bottom: none; }
+  .steps-table tr:hover td { background: rgba(0,170,255,0.03); }
+  .step-kind { color: var(--accent); }
+
+  .install-box {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.2rem 1.5rem; margin-top: 2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .install-cmd { color: var(--accent); }
+  .copy-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    padding: 5px 12px; border-radius: 2px; cursor: none;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 2.5rem 2rem;
+    text-align: center; z-index: 1; position: relative;
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1100px; margin: 0 auto; flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-brand { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+  .footer-brand span { color: var(--accent); }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); text-decoration: none; transition: color 0.2s; cursor: none;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .particle {
+    position: fixed; border-radius: 50%;
+    background: var(--accent); pointer-events: none; z-index: 0;
+    animation: float linear infinite; opacity: 0;
+  }
+  @keyframes float {
+    0% { transform: translateY(110vh) scale(0); opacity: 0; }
+    10% { opacity: 0.1; }
+    90% { opacity: 0.03; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  @media (max-width: 768px) {
+    .tools-grid { grid-template-columns: 1fr; }
+    .api-grid { grid-template-columns: 1fr; }
+    .footer-inner { flex-direction: column; text-align: center; }
+    .stat { min-width: 120px; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div id="particles" aria-hidden="true"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+
+  <div class="badge">
+    <span class="badge-dot" aria-hidden="true"></span>
+    v1.0 &mdash; React + TypeScript
+  </div>
+
+  <h1>tool<span class="h1-accent">-pilot</span></h1>
+  <p class="tagline">
+    Give it a goal. Watch it think, pick tools, observe results,<br/>
+    and reason its way to an answer &mdash; live.
+  </p>
+
+  <div class="hero-cta">
+    <a href="https://github.com/roaheit/llm-apps/tree/main/tool-pilot" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+      View on GitHub &rarr;
+    </a>
+    <a href="#install" class="btn btn-outline">
+      npm install
+    </a>
+    <a href="../index.html" class="btn btn-outline">
+      &larr; All Projects
+    </a>
+  </div>
+
+  <div class="terminal-wrap">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="t-dot red"></span>
+        <span class="t-dot yellow"></span>
+        <span class="t-dot green"></span>
+        <span class="t-title">App.tsx</span>
+      </div>
+      <div class="terminal-body">
+        <div class="type-line"><span class="t-keyword">import</span> { ToolPilot, webSearch, codeExec, fileRead } <span class="t-keyword">from</span> <span class="t-str">"tool-pilot"</span></div>
+        <div class="type-line"> </div>
+        <div class="type-line"><span class="t-keyword">const</span> config = {</div>
+        <div class="type-line">&nbsp;&nbsp;llm: { provider: <span class="t-str">"anthropic"</span>, apiKey: <span class="t-str">env.KEY</span> },</div>
+        <div class="type-line">&nbsp;&nbsp;tools: [<span class="t-fn">webSearch</span>, <span class="t-fn">codeExec</span>, <span class="t-fn">fileRead</span>],</div>
+        <div class="type-line">&nbsp;&nbsp;maxSteps: <span class="t-fn">8</span>,</div>
+        <div class="type-line">}</div>
+        <div class="type-line"> </div>
+        <div class="type-line"><span class="t-tag">&lt;ToolPilot</span> <span class="t-attr">config</span>={config} /&gt;</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar reveal">
+  <div class="stat">
+    <span class="stat-num" data-target="3">0</span>
+    <span class="stat-label">Built-in Tools</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="4">0</span>
+    <span class="stat-label">LLM Providers</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="5">0</span>
+    <span class="stat-label">Step Types</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="0">0</span>
+    <span class="stat-label">Vendor Lock-in</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="section-inner">
+    <p class="section-label reveal">ReAct Loop</p>
+    <h2 class="reveal">Think. Act.<br/>Observe. Repeat.</h2>
+    <p class="section-sub reveal">The agent follows a ReAct (Reason + Act) loop. It reasons about what to do, calls a tool, reads the result, and continues until it has a grounded answer.</p>
+
+    <div style="margin-top: 3rem;" class="reveal">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">react-loop.txt</span>
+        </div>
+        <div class="terminal-body" style="line-height: 2;">
+          <div>User goal</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&#x2502;</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&#x25BC;</div>
+          <div>&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;</div>
+          <div>&#x2502; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-fn">ReAct Reasoning Loop</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#x2502;</div>
+          <div>&#x2502;&nbsp;&nbsp;&#x1F9E0; THINK &#x2192; &#x1F527; ACT &#x2192; &#x1F441; OBSERVE &#x2192; &#x21BA; &nbsp;&#x2502;</div>
+          <div>&#x2502; &nbsp;&nbsp;&nbsp;&nbsp;(up to maxSteps iterations)&nbsp;&nbsp;&nbsp;&nbsp;&#x2502;</div>
+          <div>&#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&#x2502;</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&#x25BC;</div>
+          <div><span class="t-fn">&#x2705; ANSWER</span> (grounded in tool observations)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILT-IN TOOLS -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Built-in Tools</p>
+    <h2 class="reveal">Three tools.<br/>Infinite tasks.</h2>
+    <p class="section-sub reveal">Ship with batteries included. Or create your own tools in minutes.</p>
+
+    <div class="tools-grid reveal">
+      <div class="tool-card">
+        <div class="tool-icon">&#x1F50D;</div>
+        <div class="tool-name">Web Search</div>
+        <div class="tool-val">webSearch</div>
+        <div class="tool-desc">Search the web via DuckDuckGo Instant Answer API. Returns summaries and related topics. Override with your preferred search provider.</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">&#x1F4BB;</div>
+        <div class="tool-name">Code Execution</div>
+        <div class="tool-val">codeExec</div>
+        <div class="tool-desc">Execute JavaScript in a sandboxed environment. console.log output is captured and returned. Great for calculations, data transforms, and logic.</div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">&#x1F4C4;</div>
+        <div class="tool-name">File Read</div>
+        <div class="tool-val">fileRead</div>
+        <div class="tool-desc">Fetch and read the text content of any URL. HTML tags are stripped for readability. Content is truncated to configurable max length.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOM TOOLS -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Extensible</p>
+    <h2 class="reveal">Build any<br/>tool you need.</h2>
+    <p class="section-sub reveal">Implement ToolDefinition &mdash; name, description, parameters, and an execute function. The LLM sees the schema automatically.</p>
+
+    <div style="margin-top: 3rem;" class="reveal">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">weatherTool.ts</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-keyword">const</span> weatherTool: <span class="t-fn">ToolDefinition</span> = {</div>
+          <div>&nbsp;&nbsp;name: <span class="t-str">"get_weather"</span>,</div>
+          <div>&nbsp;&nbsp;description: <span class="t-str">"Get current weather for a city"</span>,</div>
+          <div>&nbsp;&nbsp;parameters: [</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;{ name: <span class="t-str">"city"</span>, type: <span class="t-str">"string"</span>, required: <span class="t-fn">true</span> },</div>
+          <div>&nbsp;&nbsp;],</div>
+          <div>&nbsp;&nbsp;execute: <span class="t-keyword">async</span> (args) =&gt; {</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-keyword">const</span> res = <span class="t-keyword">await</span> fetch(<span class="t-str">`https://wttr.in/${args.city}?format=3`</span>)</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-keyword">return</span> res.text()</div>
+          <div>&nbsp;&nbsp;},</div>
+          <div>}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROVIDERS -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Providers</p>
+    <h2 class="reveal">Any LLM.<br/>Your choice.</h2>
+    <p class="section-sub reveal">Pick a provider. Override the model. Or bring your own adapter.</p>
+
+    <div class="providers-grid reveal">
+      <div class="provider-card">
+        <div class="provider-name">Anthropic</div>
+        <div class="provider-value">provider: "anthropic"</div>
+        <div class="provider-model">Default: claude-sonnet-4-20250514</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">OpenAI</div>
+        <div class="provider-value">provider: "openai"</div>
+        <div class="provider-model">Default: gpt-4o</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">Mistral</div>
+        <div class="provider-value">provider: "mistral"</div>
+        <div class="provider-model">Default: mistral-medium</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">Custom</div>
+        <div class="provider-value">provider: "custom"</div>
+        <div class="provider-model">Bring your own adapter &mdash; any API, any model.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REASONING STEPS -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Reasoning Trace</p>
+    <h2 class="reveal">Every step<br/>is visible.</h2>
+    <p class="section-sub reveal">Watch the agent's full chain of thought. Each step is streamed to the UI in real time.</p>
+
+    <table class="steps-table reveal">
+      <thead>
+        <tr>
+          <th>Kind</th>
+          <th>Icon</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="step-kind">thinking</span></td>
+          <td>&#x1F9E0;</td>
+          <td>LLM reasoning about what to do next</td>
+        </tr>
+        <tr>
+          <td><span class="step-kind">tool-call</span></td>
+          <td>&#x1F527;</td>
+          <td>Agent chose a tool and is calling it with arguments</td>
+        </tr>
+        <tr>
+          <td><span class="step-kind">observation</span></td>
+          <td>&#x1F441;</td>
+          <td>Result returned from the tool execution</td>
+        </tr>
+        <tr>
+          <td><span class="step-kind">answer</span></td>
+          <td>&#x2705;</td>
+          <td>Final answer grounded in observations</td>
+        </tr>
+        <tr>
+          <td><span class="step-kind">error</span></td>
+          <td>&#x274C;</td>
+          <td>Error during LLM call or tool execution</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Install</p>
+    <h2 class="reveal">One package.<br/>Autonomous agent.</h2>
+
+    <div class="install-box reveal">
+      <span class="install-cmd">npm install tool-pilot</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'npm install tool-pilot')">copy</button>
+    </div>
+    <div class="install-box reveal" style="margin-top:0.75rem;">
+      <span class="install-cmd">yarn add tool-pilot</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'yarn add tool-pilot')">copy</button>
+    </div>
+  </div>
+</section>
+
+<!-- HOOK API -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Hook API</p>
+    <h2 class="reveal">Full control<br/>with useToolPilot.</h2>
+    <p class="section-sub reveal">Skip the component. Drive the agent from any UI or use it headless.</p>
+
+    <div class="api-grid reveal">
+      <div class="api-card">
+        <div class="api-method">run(input: string)</div>
+        <div class="api-desc">Start the agent with a goal. Returns a Promise that resolves when the agent produces an answer.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">steps: ReasoningStep[]</div>
+        <div class="api-desc">Live-updating list of reasoning steps. Streams each think/tool-call/observation as it happens.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">answer: string</div>
+        <div class="api-desc">Final answer produced by the agent after reasoning through tools.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">status: AgentStatus</div>
+        <div class="api-desc">"idle" &middot; "planning" &middot; "executing" &middot; "done" &middot; "error" &mdash; track the agent's state.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">error: Error | null</div>
+        <div class="api-desc">Error object if the agent failed. null during normal operation.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">reset()</div>
+        <div class="api-desc">Clear all steps, answer, and error state. Returns the agent to idle.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">tool<span>-pilot</span></div>
+    <div class="footer-links">
+      <a href="https://github.com/roaheit/llm-apps/tree/main/tool-pilot" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.npmjs.com/package/tool-pilot" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://github.com/roaheit/llm-apps/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+      <a href="../index.html">&larr; All Projects</a>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">
+      MIT License
+    </div>
+  </div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top  = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ring.style.width = '56px'; ring.style.height = '56px'; ring.style.opacity = '0.8';
+  });
+  el.addEventListener('mouseleave', () => {
+    ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.5';
+  });
+});
+
+const particleContainer = document.getElementById('particles');
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.classList.add('particle');
+  p.style.left = Math.random() * 100 + 'vw';
+  p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+  p.style.animationDuration = (12 + Math.random() * 20) + 's';
+  p.style.animationDelay = (Math.random() * 15) + 's';
+  particleContainer.appendChild(p);
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+document.querySelectorAll('.stat-num').forEach(el => {
+  const target = +el.dataset.target;
+  if (target === 0) { el.textContent = '0'; return; }
+  let current = 0;
+  const step = Math.ceil(target / 40);
+  const iv = setInterval(() => {
+    current += step;
+    if (current >= target) { current = target; clearInterval(iv); }
+    el.textContent = current;
+  }, 30);
+});
+
+function copyInstall(btn, text) {
+  navigator.clipboard.writeText(text);
+  btn.textContent = 'copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+}
+</script>
+
+</body>
+</html>

@@ -101,6 +101,10 @@ This repository solves that by focusing on:
   * Source: [pipeline-explainer/](pipeline-explainer/)
   * Docs: [pipeline-explainer/README.md](pipeline-explainer/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/pipeline-explainer)
 
+* **tool-pilot** — Task-planning AI agent with a ReAct reasoning loop and pluggable tools (web search, code execution, file reading) for React. Give it a goal — watch it think, act, and deliver.
+  * Source: [tool-pilot/](tool-pilot/)
+  * Docs: [tool-pilot/README.md](tool-pilot/README.md) · [interactive docs](https://roaheit.github.io/llm-apps/tool-pilot)
+
 ---
 
 ## 🏗️ Tech Philosophy
@@ -133,7 +137,7 @@ Priorities:
 | ✅ Live | **context-forge** | Production-grade retrieval-augmented generation pipeline for React |
 | ✅ Live | **sql-narrator** | React component that explains SQL queries and results in plain English |
 | ✅ Live | **pipeline-explainer** | Visualize and narrate data pipeline DAGs (Snowflake tasks, generic JSON) |
-| 🔜 Soon | Multi-tool reasoning agent | Task-planning agent with web search, code exec & file tools |
+| ✅ Live | **tool-pilot** | Task-planning AI agent with ReAct reasoning loop & pluggable tools |
 | 📋 Planned | Model benchmarking toolkit | Cost vs accuracy comparisons across providers & tasks |
 | 📋 Planned | Enterprise AI reference architecture | Full-stack blueprint for production AI systems |
 | 📋 Planned | Deployment & performance guide | Practical patterns for shipping LLM apps to production |
@@ -157,8 +161,10 @@ docs/
 │   └── index.html          ← context-forge interactive docs
 ├── sql-narrator/
 │   └── index.html          ← sql-narrator interactive docs
-└── pipeline-explainer/
-    └── index.html          ← pipeline-explainer interactive docs
+├── pipeline-explainer/
+│   └── index.html          ← pipeline-explainer interactive docs
+└── tool-pilot/
+    └── index.html          ← tool-pilot interactive docs
 ```
 
 ---
