@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
-import { getAdapter, type LLMConfig } from "./adapters";
+import { complete } from "llm-core";
+import type { LLMConfig } from "./types";
 import { buildPipelinePrompt, parsePipelineNarration } from "./prompt";
 import type { Pipeline, PipelineNarration } from "./types";
 
@@ -18,8 +19,7 @@ export function usePipelineExplainer(llm: LLMConfig) {
       const id = ++requestId.current;
       setState((s) => ({ ...s, loading: true, error: null }));
       try {
-        const adapter = getAdapter(llm);
-        const raw = await adapter.complete(buildPipelinePrompt(pipeline, context), llm);
+        const { text: raw } = await complete(llm, { prompt: buildPipelinePrompt(pipeline, context) });
         const narration = parsePipelineNarration(raw) as PipelineNarration;
         if (id === requestId.current) setState({ narration, loading: false, error: null });
         return narration;

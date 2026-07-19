@@ -13,6 +13,7 @@
     "node": ">=18"
   },
   "workspaces": [
+    "llm-core",
     "agent-council",
     "context-forge",
     "json-storyteller",

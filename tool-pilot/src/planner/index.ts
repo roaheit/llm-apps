@@ -1,4 +1,4 @@
-import { callLLM } from "../adapters";
+import { callLLM } from "llm-core";
 import { buildSystemPrompt, parseAgentResponse } from "./prompt";
 import type {
   ToolPilotConfig,

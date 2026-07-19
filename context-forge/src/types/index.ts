@@ -1,15 +1,7 @@
 // ─── LLM ────────────────────────────────────────────────────────────────────
 
-export type LLMProvider = "anthropic" | "openai" | "mistral" | "custom";
-
-export interface LLMConfig {
-  provider: LLMProvider;
-  apiKey: string;
-  model?: string;
-  maxTokens?: number;
-  temperature?: number;
-  adapter?: (prompt: string, systemPrompt?: string) => Promise<string>;
-}
+import type { LLMConfig, LLMProvider } from "llm-core";
+export type { LLMConfig, LLMProvider };
 
 // ─── Embeddings ──────────────────────────────────────────────────────────────
 
