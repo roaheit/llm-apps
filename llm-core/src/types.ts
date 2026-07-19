@@ -65,6 +65,11 @@ export interface CompleteRequest {
   signal?: AbortSignal;
 }
 
+export interface StreamRequest extends CompleteRequest {
+  /** Called for each text delta as it arrives, with the delta and the full accumulated text so far. */
+  onToken?: (delta: string, accumulated: string) => void;
+}
+
 /** Error thrown for provider/transport failures, carrying HTTP status + provider. */
 export class LLMError extends Error {
   readonly status?: number;

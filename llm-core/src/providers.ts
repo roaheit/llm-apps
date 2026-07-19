@@ -1,6 +1,6 @@
-import { fetchWithRetry } from "./http";
+import { assertOk, fetchWithRetry } from "./http";
 import { DEFAULT_MODELS } from "./models";
-import { LLMError, type LLMConfig, type LLMResult } from "./types";
+import type { LLMConfig, LLMResult } from "./types";
 
 /** A fully-resolved request — defaults already applied by `complete()`. */
 export interface ResolvedRequest {
@@ -16,16 +16,7 @@ export interface ResolvedRequest {
 // The provider JSON payloads are untyped at the boundary; parse defensively.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 async function readOrThrow(res: Response, provider: string): Promise<any> {
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    let message = `${provider} API error ${res.status}`;
-    try {
-      message = JSON.parse(body)?.error?.message ?? message;
-    } catch {
-      if (body) message += `: ${body.slice(0, 300)}`;
-    }
-    throw new LLMError(message, { status: res.status, provider });
-  }
+  await assertOk(res, provider);
   return res.json();
 }
 

@@ -105,7 +105,9 @@ export function useRAG({
         retrieved,
         config.llm,
         config.generation,
-        startTime
+        startTime,
+        (_delta, acc) =>
+          setLastResult({ query: question, answer: acc, sources: retrieved, durationMs: Date.now() - startTime })
       );
 
       setLastResult(result);

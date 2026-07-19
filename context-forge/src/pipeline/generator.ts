@@ -1,5 +1,5 @@
 import type { RetrievedChunk, GenerationConfig, LLMConfig, QueryResult } from "../types";
-import { callLLM } from "llm-core";
+import { stream } from "llm-core";
 
 const DEFAULT_SYSTEM = `You are a precise, helpful assistant that answers questions strictly based on the provided context.
 
@@ -25,7 +25,8 @@ export async function generate(
   chunks: RetrievedChunk[],
   llmCfg: LLMConfig,
   genCfg: GenerationConfig = {},
-  startTime: number
+  startTime: number,
+  onToken?: (delta: string, accumulated: string) => void
 ): Promise<QueryResult> {
   const context = buildContext(chunks);
   const systemTemplate = genCfg.systemPrompt ?? DEFAULT_SYSTEM;
@@ -37,7 +38,7 @@ export async function generate(
     ? `${query}\n\nPlease cite the source names when referencing specific information.`
     : query;
 
-  const answer = await callLLM(userPrompt, system, llmCfg);
+  const { text: answer } = await stream(llmCfg, { prompt: userPrompt, system, onToken });
 
   return {
     query,

@@ -7,6 +7,8 @@ layer instead of a `callLLM` copy-pasted into each component.
   gateway (LiteLLM, Azure OpenAI, self-hosted) via `provider: "custom"`.
 - **Proxy-friendly** — set `baseUrl` (and optional `headers`) to route through a
   backend so API keys never ship to the browser.
+- **Streaming** — `stream()` yields text deltas as they arrive (SSE), with a
+  graceful one-shot fallback for custom adapters.
 - **Resilient** — per-request timeout, exponential backoff with jitter on
   `429`/`5xx`/`529`, `Retry-After` support, and cooperative cancellation via
   `AbortSignal`.
@@ -27,6 +29,18 @@ console.log(res.text, res.usage, res.model);
 
 // Just the text (drop-in for the old per-package helper)
 const text = await callLLM("Summarize this...", "Be terse.", config);
+```
+
+### Stream tokens as they arrive
+
+```ts
+import { stream } from "llm-core";
+
+const res = await stream(config, {
+  prompt: "Write a short story about a robot.",
+  onToken: (delta, accumulated) => updateUI(accumulated),
+});
+console.log(res.usage); // final usage is still returned when the stream ends
 ```
 
 ### Route through a proxy (keep keys off the client)
