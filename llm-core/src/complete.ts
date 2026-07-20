@@ -15,6 +15,7 @@ export async function complete(config: LLMConfig, request: CompleteRequest): Pro
     timeoutMs: config.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     maxRetries: config.maxRetries ?? DEFAULT_MAX_RETRIES,
     signal: request.signal,
+    responseFormat: request.responseFormat,
   };
 
   switch (config.provider) {

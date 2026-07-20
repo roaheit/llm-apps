@@ -1,4 +1,5 @@
-import type { NarrationRequest } from "./types";
+import { extractJson } from "llm-core";
+import type { Narration, NarrationRequest } from "./types";
 
 const TONE_GUIDE: Record<string, string> = {
   narrative: "Write flowing, engaging prose, as if telling the story of the data.",
@@ -44,7 +45,13 @@ export function buildPrompt(req: NarrationRequest): string {
   return parts.filter(Boolean).join("\n\n");
 }
 
-export function parseNarration(raw: string) {
-  const clean = raw.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean);
+export function parseNarration(raw: string): Narration {
+  const data = extractJson<Partial<Narration>>(raw);
+  return {
+    summary: typeof data.summary === "string" ? data.summary : "",
+    queryExplanation: typeof data.queryExplanation === "string" ? data.queryExplanation : "",
+    resultsInterpretation:
+      typeof data.resultsInterpretation === "string" ? data.resultsInterpretation : undefined,
+    caveats: Array.isArray(data.caveats) ? data.caveats : undefined,
+  };
 }

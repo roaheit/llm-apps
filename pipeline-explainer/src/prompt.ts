@@ -1,4 +1,5 @@
-import type { Pipeline } from "./types";
+import { extractJson } from "llm-core";
+import type { Pipeline, PipelineNarration } from "./types";
 
 export function buildPipelinePrompt(pipeline: Pipeline, context?: string): string {
   const nodeLines = pipeline.nodes.map((n) =>
@@ -28,7 +29,12 @@ export function buildPipelinePrompt(pipeline: Pipeline, context?: string): strin
     .join("\n\n");
 }
 
-export function parsePipelineNarration(raw: string) {
-  const clean = raw.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean);
+export function parsePipelineNarration(raw: string): PipelineNarration {
+  const data = extractJson<Partial<PipelineNarration>>(raw);
+  return {
+    summary: typeof data.summary === "string" ? data.summary : "",
+    flowExplanation: typeof data.flowExplanation === "string" ? data.flowExplanation : "",
+    nodeNotes: data.nodeNotes && typeof data.nodeNotes === "object" ? data.nodeNotes : {},
+    observations: Array.isArray(data.observations) ? data.observations : [],
+  };
 }

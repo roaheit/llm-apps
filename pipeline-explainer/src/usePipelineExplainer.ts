@@ -19,7 +19,7 @@ export function usePipelineExplainer(llm: LLMConfig) {
       const id = ++requestId.current;
       setState((s) => ({ ...s, loading: true, error: null }));
       try {
-        const { text: raw } = await complete(llm, { prompt: buildPipelinePrompt(pipeline, context) });
+        const { text: raw } = await complete(llm, { prompt: buildPipelinePrompt(pipeline, context), responseFormat: "json" });
         const narration = parsePipelineNarration(raw) as PipelineNarration;
         if (id === requestId.current) setState({ narration, loading: false, error: null });
         return narration;

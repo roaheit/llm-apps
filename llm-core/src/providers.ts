@@ -11,6 +11,7 @@ export interface ResolvedRequest {
   timeoutMs: number;
   maxRetries: number;
   signal?: AbortSignal;
+  responseFormat?: "json" | "text";
 }
 
 // The provider JSON payloads are untyped at the boundary; parse defensively.
@@ -88,6 +89,7 @@ export async function chatComplete(
   const body: Record<string, unknown> = { max_tokens: req.maxTokens, messages };
   if (model) body.model = model;
   if (req.temperature !== undefined) body.temperature = req.temperature;
+  if (req.responseFormat === "json") body.response_format = { type: "json_object" };
 
   const res = await fetchWithRetry(
     opts.url,
