@@ -87,7 +87,6 @@ export function createCodeExecTool(options: CodeExecOptions): ToolDefinition {
       try {
         const keys = Object.keys(scope);
         const vals = Object.values(scope);
-        // eslint-disable-next-line @typescript-eslint/no-implied-eval
         const fn = new Function(...keys, `"use strict";\n${code}`);
 
         let timer: ReturnType<typeof setTimeout> | undefined;

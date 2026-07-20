@@ -1,6 +1,6 @@
 {
   "name": "tool-pilot",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Task-planning AI agent with a ReAct reasoning loop and pluggable tools (web search, code execution, file reading) for React. Give it a goal — watch it think, act, and deliver.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format esm --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
   },
   "keywords": [
     "tool-pilot", "agent", "ai", "llm", "react", "tools", "reasoning",

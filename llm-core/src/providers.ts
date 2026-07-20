@@ -15,7 +15,7 @@ export interface ResolvedRequest {
 }
 
 // The provider JSON payloads are untyped at the boundary; parse defensively.
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 async function readOrThrow(res: Response, provider: string): Promise<any> {
   await assertOk(res, provider);
   return res.json();
@@ -122,4 +122,4 @@ export async function chatComplete(
     raw: data,
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
+ 

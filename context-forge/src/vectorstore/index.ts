@@ -1,4 +1,4 @@
-import type { DocumentChunk, VectorStoreAdapter, VectorStoreConfig, RetrievedChunk } from "../types";
+import type { DocumentChunk, VectorStoreAdapter, VectorStoreConfig } from "../types";
 
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;
