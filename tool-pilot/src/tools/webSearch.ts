@@ -1,5 +1,11 @@
 import type { ToolDefinition } from "../types";
 
+/**
+ * Default web-search tool — calls the public DuckDuckGo Instant Answer API
+ * directly from the caller's environment (subject to CORS in the browser, and
+ * the query is sent to a third party). Override with your own ToolDefinition
+ * for a different provider or a server-side proxy.
+ */
 export const webSearch: ToolDefinition = {
   name: "web_search",
   description: "Search the web for current information. Returns a summary of top results.",

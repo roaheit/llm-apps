@@ -19,11 +19,15 @@ yarn add tool-pilot
 ## Quick Start
 
 ```tsx
-import { ToolPilot, webSearch, codeExec, fileRead } from "tool-pilot";
+import { ToolPilot, webSearch, fileRead, createCodeExecTool } from "tool-pilot";
+
+// code_exec runs model-generated JS in the host environment (no sandbox) —
+// enable it explicitly, and only for trusted input.
+const codeExec = createCodeExecTool({ acknowledgeUnsafe: true });
 
 const config = {
   llm: { provider: "anthropic", apiKey: import.meta.env.VITE_ANTHROPIC_KEY },
-  tools: [webSearch, codeExec, fileRead],
+  tools: [webSearch, fileRead, codeExec],
   maxSteps: 8,
 };
 
@@ -86,9 +90,15 @@ Searches the web via DuckDuckGo Instant Answer API.
 | `query` | `string` | ✓ | Search query |
 | `maxResults` | `number` | | Max results (default: 5) |
 
-### `codeExec`
+### `createCodeExecTool(options)`
 
-Executes JavaScript in a sandboxed environment (Function constructor with a restricted global scope).
+Creates a `code_exec` tool that evaluates a JavaScript snippet.
+
+> ⚠️ **Unsafe — no sandbox.** It runs model-generated JavaScript in the host environment via the `Function` constructor; the curated globals are a convenience, not a security boundary. Only enable it for **trusted** input. You must pass `acknowledgeUnsafe: true`; `timeoutMs` (default 5000) is best-effort and cannot interrupt a synchronous infinite loop — use a Web Worker for hard isolation.
+
+```ts
+const codeExec = createCodeExecTool({ acknowledgeUnsafe: true, timeoutMs: 5000 });
+```
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -96,7 +106,7 @@ Executes JavaScript in a sandboxed environment (Function constructor with a rest
 
 ### `fileRead`
 
-Fetches and reads the text content of a URL. Strips HTML tags for readability.
+Fetches and returns the text content of an http(s) URL (HTML tags stripped). Subject to CORS in the browser; requests to loopback/private-network addresses are blocked (SSRF guard).
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -152,7 +162,7 @@ interface ToolPilotConfig {
 |---|---|---|
 | `provider` | `"anthropic" \| "openai" \| "mistral" \| "custom"` | LLM provider. |
 | `apiKey` | `string` | API key. |
-| `model` | `string` | Model override. Defaults: `claude-sonnet-4-20250514`, `gpt-4o`, `mistral-medium`. |
+| `model` | `string` | Model override. Defaults: `claude-sonnet-5`, `gpt-4o`, `mistral-large-latest`. |
 | `maxTokens` | `number` | Max tokens per LLM call (default: 2048). |
 | `adapter` | `(prompt, systemPrompt?) => Promise<string>` | Custom adapter for `"custom"` provider. |
 
@@ -171,9 +181,9 @@ interface ToolPilotConfig {
 
 | Provider | `provider` value | Default model |
 |---|---|---|
-| Anthropic | `"anthropic"` | `claude-sonnet-4-20250514` |
+| Anthropic | `"anthropic"` | `claude-sonnet-5` |
 | OpenAI | `"openai"` | `gpt-4o` |
-| Mistral | `"mistral"` | `mistral-medium` |
+| Mistral | `"mistral"` | `mistral-large-latest` |
 | Any other | `"custom"` | — bring your own adapter |
 
 ---
@@ -183,13 +193,13 @@ interface ToolPilotConfig {
 For full control, use `useToolPilot` directly:
 
 ```tsx
-import { useToolPilot, webSearch, codeExec } from "tool-pilot";
+import { useToolPilot, webSearch, createCodeExecTool } from "tool-pilot";
 
 function Agent() {
   const { run, steps, answer, status, error, reset } = useToolPilot({
     config: {
       llm: { provider: "anthropic", apiKey: "..." },
-      tools: [webSearch, codeExec],
+      tools: [webSearch, createCodeExecTool({ acknowledgeUnsafe: true })],
     },
     onStep: (step) => console.log(`[${step.kind}]`, step.content),
     onComplete: (result) => console.log("Done in", result.totalDurationMs + "ms"),
@@ -231,11 +241,11 @@ function Agent() {
 Use `runAgent` directly for Node.js or non-React environments:
 
 ```ts
-import { runAgent, webSearch, codeExec } from "tool-pilot";
+import { runAgent, createCodeExecTool } from "tool-pilot";
 
 const result = await runAgent("What is 2^100?", {
   llm: { provider: "openai", apiKey: "..." },
-  tools: [codeExec],
+  tools: [createCodeExecTool({ acknowledgeUnsafe: true })],
   maxSteps: 5,
 });
 
