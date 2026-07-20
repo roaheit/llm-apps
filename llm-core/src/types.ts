@@ -63,6 +63,8 @@ export interface CompleteRequest {
   temperature?: number;
   /** Abort signal to cancel the request (and stop retries). */
   signal?: AbortSignal;
+  /** Ask the provider for JSON output where supported (OpenAI-compatible `response_format`). */
+  responseFormat?: "json" | "text";
 }
 
 export interface StreamRequest extends CompleteRequest {

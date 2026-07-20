@@ -1,5 +1,6 @@
 export { complete, callLLM } from "./complete";
 export { stream } from "./stream";
+export { extractJson } from "./json";
 export {
   DEFAULT_MODELS,
   DEFAULT_MAX_TOKENS,

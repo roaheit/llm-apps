@@ -1,3 +1,4 @@
+import { extractJson } from "llm-core";
 import type { ToolDefinition } from "../types";
 
 export function buildSystemPrompt(tools: ToolDefinition[], customPreamble?: string): string {
@@ -47,7 +48,6 @@ export function parseAgentResponse(raw: string): {
 } {
   const thinkMatch = raw.match(/THINK:\s*([\s\S]*?)(?=\nACTION:|ANSWER:|$)/i);
   const actionMatch = raw.match(/ACTION:\s*(\S+)/i);
-  const inputMatch = raw.match(/ACTION_INPUT:\s*(\{[\s\S]*?\})/i);
   const answerMatch = raw.match(/ANSWER:\s*([\s\S]*)/i);
 
   const think = thinkMatch?.[1]?.trim() ?? "";
@@ -58,11 +58,14 @@ export function parseAgentResponse(raw: string): {
 
   if (actionMatch) {
     let actionInput: Record<string, unknown> = {};
-    if (inputMatch) {
+    const inputIdx = raw.search(/ACTION_INPUT:/i);
+    if (inputIdx >= 0) {
+      // Balanced JSON scan after ACTION_INPUT: — nested braces no longer truncate the args.
+      const after = raw.slice(inputIdx).replace(/ACTION_INPUT:/i, "");
       try {
-        actionInput = JSON.parse(inputMatch[1]);
+        actionInput = extractJson<Record<string, unknown>>(after);
       } catch {
-        actionInput = { _raw: inputMatch[1] };
+        actionInput = {};
       }
     }
     return { think, action: actionMatch[1].trim(), actionInput };

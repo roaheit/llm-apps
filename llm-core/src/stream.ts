@@ -11,6 +11,7 @@ interface ResolvedStream {
   temperature?: number;
   maxRetries: number;
   signal?: AbortSignal;
+  responseFormat?: "json" | "text";
   onToken?: (delta: string, accumulated: string) => void;
 }
 
@@ -160,6 +161,7 @@ async function chatStream(
   };
   if (model) body.model = model;
   if (req.temperature !== undefined) body.temperature = req.temperature;
+  if (req.responseFormat === "json") body.response_format = { type: "json_object" };
 
   const res = await connectWithRetry(
     opts.url,
@@ -217,6 +219,7 @@ export async function stream(config: LLMConfig, request: StreamRequest): Promise
     temperature: request.temperature ?? config.temperature,
     maxRetries: config.maxRetries ?? DEFAULT_MAX_RETRIES,
     signal: request.signal,
+    responseFormat: request.responseFormat,
     onToken: request.onToken,
   };
 

@@ -21,7 +21,7 @@ export function useSqlNarrator(llm: LLMConfig): UseSqlNarratorReturn {
       const id = ++requestId.current;
       setState((s) => ({ ...s, loading: true, error: null }));
       try {
-        const { text: raw } = await complete(llm, { prompt: buildPrompt(req) });
+        const { text: raw } = await complete(llm, { prompt: buildPrompt(req), responseFormat: "json" });
         const narration = parseNarration(raw) as Narration;
         if (id === requestId.current) {
           setState({ narration, loading: false, error: null });
