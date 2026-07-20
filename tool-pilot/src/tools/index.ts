@@ -1,8 +1,9 @@
 import type { ToolDefinition } from "../types";
 
 export { webSearch } from "./webSearch";
-export { codeExec } from "./codeExec";
 export { fileRead } from "./fileRead";
+export { createCodeExecTool } from "./codeExec";
+export type { CodeExecOptions } from "./codeExec";
 
 export function buildToolDescriptions(tools: ToolDefinition[]): string {
   return tools
