@@ -61,7 +61,6 @@ export function SqlNarrator({ llm, auto = true, className, ...request }: SqlNarr
     if (auto && request.sql?.trim()) {
       narrate(request);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, requestKey, narrate]);
 
   return (

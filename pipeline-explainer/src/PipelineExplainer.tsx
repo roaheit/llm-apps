@@ -45,7 +45,6 @@ export function PipelineExplainer({ llm, ddl, pipeline, context, auto = true, cl
 
   useEffect(() => {
     if (auto && parsed && parsed.nodes.length > 0) explain(parsed, context);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, JSON.stringify(parsed), context]);
 
   if (!parsed || parsed.nodes.length === 0) {

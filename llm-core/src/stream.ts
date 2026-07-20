@@ -2,7 +2,7 @@ import { assertOk, backoffDelay, RETRYABLE_STATUS, sleep } from "./http";
 import { DEFAULT_MAX_RETRIES, DEFAULT_MAX_TOKENS, DEFAULT_MODELS } from "./models";
 import { LLMError, type LLMConfig, type LLMResult, type StreamRequest, type TokenUsage } from "./types";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 interface ResolvedStream {
   prompt: string;
@@ -262,4 +262,4 @@ export async function stream(config: LLMConfig, request: StreamRequest): Promise
       });
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
+ 
