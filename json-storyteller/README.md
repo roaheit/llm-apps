@@ -37,7 +37,7 @@ import { JsonStoryteller } from "json-storyteller";
 
 // Mistral
 <JsonStoryteller
-  llm={{ provider: "mistral", apiKey: "...", model: "mistral-medium" }}
+  llm={{ provider: "mistral", apiKey: "...", model: "mistral-large-latest" }}
   data={myData}
   tone="casual"
 />
@@ -49,9 +49,9 @@ import { JsonStoryteller } from "json-storyteller";
 
 | Provider | `provider` value | Default model |
 |---|---|---|
-| Anthropic | `"anthropic"` | `claude-sonnet-4-20250514` |
+| Anthropic | `"anthropic"` | `claude-sonnet-5` |
 | OpenAI | `"openai"` | `gpt-4o` |
-| Mistral | `"mistral"` | `mistral-medium` |
+| Mistral | `"mistral"` | `mistral-large-latest` |
 | Any other | `"custom"` | — (bring your own adapter) |
 
 ---
@@ -144,7 +144,7 @@ export default async function handler(req, res) {
       "x-api-key": process.env.ANTHROPIC_KEY, // server-side only
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-5",
       max_tokens: 1000,
       messages: [{ role: "user", content: prompt }],
     }),

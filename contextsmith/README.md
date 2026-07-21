@@ -82,7 +82,7 @@ const config: ContextForgeConfig = {
   llm: {
     provider: "anthropic",          // "anthropic" | "openai" | "mistral" | "custom"
     apiKey: "sk-ant-...",
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-5",
     maxTokens: 1500,
     temperature: 0.2,
   },

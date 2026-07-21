@@ -139,9 +139,9 @@ interface PipelineConfig {
 
 | Provider | `provider` value | Default model |
 |---|---|---|
-| Anthropic | `"anthropic"` | `claude-sonnet-4-20250514` |
+| Anthropic | `"anthropic"` | `claude-sonnet-5` |
 | OpenAI | `"openai"` | `gpt-4o` |
-| Mistral | `"mistral"` | `mistral-medium` |
+| Mistral | `"mistral"` | `mistral-large-latest` |
 | Any other | `"custom"` | — bring your own adapter |
 
 Each agent can use a **different** provider:
