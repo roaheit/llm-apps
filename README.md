@@ -51,7 +51,7 @@ Most "LLM example" repos give you a clever prompt and a `fetch` call. This one i
 ### 🤖 Agents & reasoning
 
 - **[tool-pilot](tool-pilot/)** — give an agent a goal and watch it **think → pick a tool → act**, live. A ReAct reasoning loop with pluggable tools (web search, file read, opt-in code exec). · [docs](https://roaheit.github.io/llm-apps/tool-pilot)
-- **[agentquorum](agentquorum/)** — convene a **council of agents** with distinct roles, run them sequentially or in parallel, and watch a live reasoning trace converge on an answer. · [docs](https://roaheit.github.io/llm-apps/agentquorum)
+- **[agentensemble](agentensemble/)** — convene a **council of agents** with distinct roles, run them sequentially or in parallel, and watch a live reasoning trace converge on an answer. · [docs](https://roaheit.github.io/llm-apps/agentensemble)
 - **[agent-recall](agent-recall/)** — give your agents a memory that lasts: **short-term, long-term, and episodic** layers, local-first and framework-agnostic. *(Python)* · [docs](https://roaheit.github.io/llm-apps/agent-recall)
 
 ### 📚 Retrieval & data intelligence
@@ -126,7 +126,7 @@ Each package ships its own README and **[interactive docs](https://roaheit.githu
 |---|---|---|
 | ✅ Live | **corellm** | Shared multi-provider LLM client — streaming, retries, structured output, usage |
 | ✅ Live | **tool-pilot** | ReAct agent with a live reasoning loop & pluggable tools |
-| ✅ Live | **agentquorum** | Composable multi-agent reasoning pipeline for React |
+| ✅ Live | **agentensemble** | Composable multi-agent reasoning pipeline for React |
 | ✅ Live | **agent-recall** | Persistent short/long/episodic memory for LLM agents (Python) |
 | ✅ Live | **contextsmith** | Retrieval-augmented generation pipeline for React |
 | ✅ Live | **sql-narrator** | Explains SQL queries and their results in plain English |

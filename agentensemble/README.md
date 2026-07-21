@@ -1,4 +1,4 @@
-# agentquorum
+# agentensemble
 
 > Composable multi-agent reasoning pipeline for React. Assemble a council of agents with custom roles, choose sequential or parallel orchestration, plug in any LLM — and get a live visual reasoning trace.
 
@@ -9,9 +9,9 @@ Part of [llm-apps](https://github.com/roaheit/llm-apps) — a growing collection
 ## Installation
 
 ```bash
-npm install agentquorum
+npm install agentensemble
 # or
-yarn add agentquorum
+yarn add agentensemble
 ```
 
 ---
@@ -19,7 +19,7 @@ yarn add agentquorum
 ## Quick Start
 
 ```tsx
-import { MultiAgentReasoning } from "agentquorum";
+import { MultiAgentReasoning } from "agentensemble";
 
 const pipeline = {
   mode: "sequential",
@@ -168,7 +168,7 @@ agents: [
 For full control, use `useMultiAgent` directly:
 
 ```tsx
-import { useMultiAgent } from "agentquorum";
+import { useMultiAgent } from "agentensemble";
 
 const { run, agentResults, synthesis, running, activeAgentId, error, reset } = useMultiAgent({
   pipeline,
@@ -247,7 +247,7 @@ import type {
   AgentResult,
   PipelineResult,
   LLMConfig,
-} from "agentquorum";
+} from "agentensemble";
 ```
 
 ---

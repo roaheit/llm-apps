@@ -14,7 +14,7 @@
   },
   "workspaces": [
     "corellm",
-    "agentquorum",
+    "agentensemble",
     "contextsmith",
     "json-storyteller",
     "pipeline-explainer",

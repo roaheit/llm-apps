@@ -27,13 +27,20 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          for pkg in corellm agentquorum contextsmith json-storyteller pipeline-explainer sql-narrator tool-pilot; do
+          failed=""
+          for pkg in corellm agentensemble contextsmith json-storyteller pipeline-explainer sql-narrator tool-pilot; do
             name=$(node -p "require('./$pkg/package.json').name")
             version=$(node -p "require('./$pkg/package.json').version")
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "$name@$version already published, skipping"
+            elif (cd "$pkg" && npm publish --provenance --access public); then
+              echo "Published $name@$version"
             else
-              echo "Publishing $name@$version"
-              (cd "$pkg" && npm publish --provenance --access public)
+              echo "FAILED to publish $name@$version"
+              failed="$failed $name"
             fi
           done
+          if [ -n "$failed" ]; then
+            echo "Failed packages:$failed"
+            exit 1
+          fi
