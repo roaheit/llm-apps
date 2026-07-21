@@ -1,5 +1,5 @@
 import type { RetrievedChunk, GenerationConfig, LLMConfig, QueryResult } from "../types";
-import { stream } from "llm-core";
+import { stream } from "corellm";
 
 const DEFAULT_SYSTEM = `You are a precise, helpful assistant that answers questions strictly based on the provided context.
 

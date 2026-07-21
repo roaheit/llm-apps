@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { stream } from "llm-core";
+import { stream } from "corellm";
 import type { UseJsonStorytellerOptions, UseJsonStorytellerReturn, StoryTone } from "../types";
 
 const TONE_PROMPTS: Record<StoryTone, string> = {

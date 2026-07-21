@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { complete } from "llm-core";
+import { complete } from "corellm";
 import type { LLMConfig } from "./types";
 import { buildPipelinePrompt, parsePipelineNarration } from "./prompt";
 import type { Pipeline, PipelineNarration } from "./types";

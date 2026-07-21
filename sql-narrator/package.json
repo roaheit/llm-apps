@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/roaheit/llm-apps",
+    "url": "git+https://github.com/roaheit/llm-apps.git",
     "directory": "sql-narrator"
   },
   "main": "dist/index.js",
@@ -21,7 +21,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "llm-core": "^0.1.0"
+    "corellm": "^0.1.0"
   },
   "peerDependencies": {
     "react": ">=17"

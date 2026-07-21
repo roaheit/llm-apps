@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>context-forge &mdash; Production-grade RAG pipeline for React | llm-apps</title>
+<title>contextsmith &mdash; Production-grade RAG pipeline for React | llm-apps</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
@@ -399,7 +399,7 @@
   </p>
 
   <div class="hero-cta">
-    <a href="https://github.com/roaheit/llm-apps/tree/main/context-forge" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+    <a href="https://github.com/roaheit/llm-apps/tree/main/contextsmith" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
       View on GitHub &rarr;
     </a>
     <a href="#install" class="btn btn-outline">
@@ -419,7 +419,7 @@
         <span class="t-title">App.tsx</span>
       </div>
       <div class="terminal-body">
-        <div class="type-line"><span class="t-keyword">import</span> { ContextForge } <span class="t-keyword">from</span> <span class="t-str">"context-forge"</span></div>
+        <div class="type-line"><span class="t-keyword">import</span> { ContextForge } <span class="t-keyword">from</span> <span class="t-str">"contextsmith"</span></div>
         <div class="type-line"> </div>
         <div class="type-line"><span class="t-keyword">const</span> config = {</div>
         <div class="type-line">&nbsp;&nbsp;llm: { provider: <span class="t-str">"anthropic"</span>, apiKey: <span class="t-str">env.ANTHROPIC_KEY</span> },</div>
@@ -617,7 +617,7 @@
           <span class="t-title">custom-vector-store.ts</span>
         </div>
         <div class="terminal-body">
-          <div><span class="t-keyword">import type</span> { VectorStoreAdapter } <span class="t-keyword">from</span> <span class="t-str">"context-forge"</span></div>
+          <div><span class="t-keyword">import type</span> { VectorStoreAdapter } <span class="t-keyword">from</span> <span class="t-str">"contextsmith"</span></div>
           <br/>
           <div><span class="t-keyword">class</span> <span class="t-fn">PineconeAdapter</span> <span class="t-keyword">implements</span> VectorStoreAdapter {</div>
           <div>&nbsp;&nbsp;<span class="t-keyword">async</span> <span class="t-fn">upsert</span>(chunks) { <span class="t-comment">/* ... */</span> }</div>
@@ -745,12 +745,12 @@
     <h2 class="reveal">One package.<br/>Full RAG stack.</h2>
 
     <div class="install-box reveal">
-      <span class="install-cmd">npm install context-forge</span>
-      <button class="copy-btn" onclick="copyInstall(this, 'npm install context-forge')">copy</button>
+      <span class="install-cmd">npm install contextsmith</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'npm install contextsmith')">copy</button>
     </div>
     <div class="install-box reveal" style="margin-top:0.75rem;">
-      <span class="install-cmd">yarn add context-forge</span>
-      <button class="copy-btn" onclick="copyInstall(this, 'yarn add context-forge')">copy</button>
+      <span class="install-cmd">yarn add contextsmith</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'yarn add contextsmith')">copy</button>
     </div>
 
     <div style="margin-top: 3rem;" class="reveal">
@@ -762,7 +762,7 @@
           <span class="t-title">DocumentQA.tsx</span>
         </div>
         <div class="terminal-body">
-          <div><span class="t-keyword">import</span> { ContextForge } <span class="t-keyword">from</span> <span class="t-str">"context-forge"</span></div>
+          <div><span class="t-keyword">import</span> { ContextForge } <span class="t-keyword">from</span> <span class="t-str">"contextsmith"</span></div>
           <br/>
           <div><span class="t-keyword">const</span> config = {</div>
           <div>&nbsp;&nbsp;llm: {</div>
@@ -792,8 +792,8 @@
   <div class="footer-inner">
     <div class="footer-brand">context<span>-forge</span></div>
     <div class="footer-links">
-      <a href="https://github.com/roaheit/llm-apps/tree/main/context-forge" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="https://www.npmjs.com/package/context-forge" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://github.com/roaheit/llm-apps/tree/main/contextsmith" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.npmjs.com/package/contextsmith" target="_blank" rel="noopener noreferrer">npm</a>
       <a href="../index.html">&larr; All Projects</a>
     </div>
     <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">

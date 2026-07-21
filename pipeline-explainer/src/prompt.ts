@@ -1,4 +1,4 @@
-import { extractJson } from "llm-core";
+import { extractJson } from "corellm";
 import type { Pipeline, PipelineNarration } from "./types";
 
 export function buildPipelinePrompt(pipeline: Pipeline, context?: string): string {

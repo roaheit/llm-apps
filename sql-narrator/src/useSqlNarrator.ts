@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { complete } from "llm-core";
+import { complete } from "corellm";
 import { buildPrompt, parseNarration } from "./prompt";
 import type { LLMConfig, Narration, NarrationRequest, NarratorState } from "./types";
 

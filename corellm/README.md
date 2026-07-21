@@ -1,4 +1,4 @@
-# llm-core
+# corellm
 
 The shared LLM client that powers every package in **llm-apps**. One provider
 layer instead of a `callLLM` copy-pasted into each component.
@@ -19,7 +19,7 @@ layer instead of a `callLLM` copy-pasted into each component.
 ## Usage
 
 ```ts
-import { complete, callLLM, type LLMConfig } from "llm-core";
+import { complete, callLLM, type LLMConfig } from "corellm";
 
 const config: LLMConfig = { provider: "anthropic", apiKey: process.env.ANTHROPIC_KEY };
 
@@ -34,7 +34,7 @@ const text = await callLLM("Summarize this...", "Be terse.", config);
 ### Stream tokens as they arrive
 
 ```ts
-import { stream } from "llm-core";
+import { stream } from "corellm";
 
 const res = await stream(config, {
   prompt: "Write a short story about a robot.",

@@ -1,4 +1,4 @@
-import type { LLMConfig, LLMProvider } from "llm-core";
+import type { LLMConfig, LLMProvider } from "corellm";
 export type { LLMConfig, LLMProvider };
 
 export type AgentMode = "sequential" | "parallel";
