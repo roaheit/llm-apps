@@ -1,4 +1,4 @@
-import { extractJson } from "llm-core";
+import { extractJson } from "corellm";
 import type { Narration, NarrationRequest } from "./types";
 
 const TONE_GUIDE: Record<string, string> = {

@@ -21,7 +21,7 @@
   "author": "roaheit",
   "license": "MIT",
   "dependencies": {
-    "llm-core": "^0.1.0"
+    "corellm": "^0.1.0"
   },
   "peerDependencies": {
     "react": ">=17.0.0",

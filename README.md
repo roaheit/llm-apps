@@ -33,7 +33,7 @@ Most "LLM example" repos give you a clever prompt and a `fetch` call. This one i
 
 | Most demos | LLM-Apps |
 |---|---|
-| API call copy-pasted into every file | **One shared `llm-core`** every package speaks through |
+| API call copy-pasted into every file | **One shared `corellm`** every package speaks through |
 | Breaks on a rate limit | **Retries + backoff + timeouts + cancellation** built in |
 | Waits, then dumps a wall of text | **Token streaming** where the UX needs it |
 | `JSON.parse` and pray | **Resilient structured output** (extract + validate) |
@@ -46,17 +46,17 @@ Most "LLM example" repos give you a clever prompt and a `fetch` call. This one i
 
 ### ⚙️ The engine
 
-- **[llm-core](llm-core/)** — the shared, framework-agnostic client every package runs on. One interface for Anthropic, OpenAI, Mistral, or any OpenAI-compatible gateway — with **streaming, retries, timeouts, cancellation, token-usage capture, and structured-output** extraction baked in. Swap providers with one line; keep your keys off the client via `baseUrl`.
+- **[corellm](corellm/)** — the shared, framework-agnostic client every package runs on. One interface for Anthropic, OpenAI, Mistral, or any OpenAI-compatible gateway — with **streaming, retries, timeouts, cancellation, token-usage capture, and structured-output** extraction baked in. Swap providers with one line; keep your keys off the client via `baseUrl`.
 
 ### 🤖 Agents & reasoning
 
 - **[tool-pilot](tool-pilot/)** — give an agent a goal and watch it **think → pick a tool → act**, live. A ReAct reasoning loop with pluggable tools (web search, file read, opt-in code exec). · [docs](https://roaheit.github.io/llm-apps/tool-pilot)
-- **[agent-council](agent-council/)** — convene a **council of agents** with distinct roles, run them sequentially or in parallel, and watch a live reasoning trace converge on an answer. · [docs](https://roaheit.github.io/llm-apps/agent-council)
+- **[agentquorum](agentquorum/)** — convene a **council of agents** with distinct roles, run them sequentially or in parallel, and watch a live reasoning trace converge on an answer. · [docs](https://roaheit.github.io/llm-apps/agentquorum)
 - **[agent-recall](agent-recall/)** — give your agents a memory that lasts: **short-term, long-term, and episodic** layers, local-first and framework-agnostic. *(Python)* · [docs](https://roaheit.github.io/llm-apps/agent-recall)
 
 ### 📚 Retrieval & data intelligence
 
-- **[context-forge](context-forge/)** — a production-shaped **RAG pipeline in a React hook**: index files, URLs, or text and query with any LLM. In-memory vectors by default; pluggable for Pinecone, Weaviate, pgvector. · [docs](https://roaheit.github.io/llm-apps/context-forge)
+- **[contextsmith](contextsmith/)** — a production-shaped **RAG pipeline in a React hook**: index files, URLs, or text and query with any LLM. In-memory vectors by default; pluggable for Pinecone, Weaviate, pgvector. · [docs](https://roaheit.github.io/llm-apps/contextsmith)
 - **[sql-narrator](sql-narrator/)** — turn dense SQL — *and what the results actually mean* — into **plain English**. Multi-dialect (Snowflake, Postgres, MySQL, BigQuery…), four tones. · [docs](https://roaheit.github.io/llm-apps/sql-narrator)
 - **[pipeline-explainer](pipeline-explainer/)** — paste Snowflake `CREATE TASK` DDL (or any DAG as JSON) and get an **interactive graph + an AI narration** of how it flows: fan-out, fan-in, stream conditions, finalizers, and risks. · [docs](https://roaheit.github.io/llm-apps/pipeline-explainer)
 
@@ -70,7 +70,7 @@ Most "LLM example" repos give you a clever prompt and a `fetch` call. This one i
 
 The part most demos skip — and the reason these are reusable:
 
-- 🧱 **One shared core** — no drifting, copy-pasted API calls. Every package talks to LLMs through `llm-core`.
+- 🧱 **One shared core** — no drifting, copy-pasted API calls. Every package talks to LLMs through `corellm`.
 - 🔁 **Resilient by default** — per-request timeouts, exponential backoff on `429`/`5xx`/`529`, and cancellation via `AbortSignal`.
 - ⚡ **Streaming** — token-by-token responses where they improve the experience.
 - 🧩 **Structured output** — fence-aware, brace-balanced JSON extraction instead of brittle string parsing.
@@ -96,7 +96,7 @@ npm test        # run the suites
 A taste of the shared engine — same call, any provider:
 
 ```ts
-import { complete, stream } from "llm-core";
+import { complete, stream } from "corellm";
 
 const config = { provider: "anthropic", apiKey: process.env.ANTHROPIC_KEY };
 
@@ -114,25 +114,25 @@ await stream(config, {
 
 Each package ships its own README and **[interactive docs](https://roaheit.github.io/llm-apps)** — explore the source, compose them, or lift the patterns into your own stack.
 
-> 📦 **Note:** packages aren't on npm yet — use them from source for now. Scoped npm releases are on the roadmap.
+> 📦 **Note:** npm publishing is rolling out now — package names were just claimed. Until then, use them from source (above).
 
 ---
 
 ## 🗺️ Roadmap
 
-**Recently shipped:** shared `llm-core` · token streaming · structured output · security hardening · tests + CI 🎉
+**Recently shipped:** shared `corellm` · token streaming · structured output · security hardening · tests + CI 🎉
 
 | Status | Project | Description |
 |---|---|---|
-| ✅ Live | **llm-core** | Shared multi-provider LLM client — streaming, retries, structured output, usage |
+| ✅ Live | **corellm** | Shared multi-provider LLM client — streaming, retries, structured output, usage |
 | ✅ Live | **tool-pilot** | ReAct agent with a live reasoning loop & pluggable tools |
-| ✅ Live | **agent-council** | Composable multi-agent reasoning pipeline for React |
+| ✅ Live | **agentquorum** | Composable multi-agent reasoning pipeline for React |
 | ✅ Live | **agent-recall** | Persistent short/long/episodic memory for LLM agents (Python) |
-| ✅ Live | **context-forge** | Retrieval-augmented generation pipeline for React |
+| ✅ Live | **contextsmith** | Retrieval-augmented generation pipeline for React |
 | ✅ Live | **sql-narrator** | Explains SQL queries and their results in plain English |
 | ✅ Live | **pipeline-explainer** | Visualizes & narrates data pipeline DAGs |
 | ✅ Live | **json-storyteller** | LLM-powered JSON → narrative React component |
-| 🔜 Next | Scoped npm releases | Publish the packages under a scoped namespace |
+| 🔜 Next | npm releases | Publish every package under its own collision-free name |
 | 📋 Planned | Model benchmarking toolkit | Cost-vs-accuracy comparisons across providers & tasks |
 | 📋 Planned | Enterprise AI reference architecture | Full-stack blueprint for production AI systems |
 

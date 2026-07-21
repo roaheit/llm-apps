@@ -13,9 +13,9 @@
     "node": ">=18"
   },
   "workspaces": [
-    "llm-core",
-    "agent-council",
-    "context-forge",
+    "corellm",
+    "agentquorum",
+    "contextsmith",
     "json-storyteller",
     "pipeline-explainer",
     "sql-narrator",

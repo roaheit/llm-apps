@@ -1,4 +1,4 @@
-# context-forge
+# contextsmith
 
 > Production-grade retrieval-augmented generation pipeline for React.
 > Index files, URLs, or plain text — query with any LLM. In-memory vector store by default, fully pluggable for Pinecone, Weaviate, pgvector, and more.
@@ -10,7 +10,7 @@ Part of [ilm-apps](https://github.com/ilm-apps) — a collection of useful, opin
 ## Installation
 
 ```bash
-npm install context-forge
+npm install contextsmith
 ```
 
 ---
@@ -18,7 +18,7 @@ npm install context-forge
 ## Quick Start
 
 ```tsx
-import { ContextForge } from "context-forge";
+import { ContextForge } from "contextsmith";
 
 const config = {
   llm: {
@@ -124,7 +124,7 @@ const config: ContextForgeConfig = {
 ## Document Sources
 
 ```ts
-import { useRAG } from "context-forge";
+import { useRAG } from "contextsmith";
 
 const { index } = useRAG({ config });
 
@@ -152,7 +152,7 @@ index([
 Use `type: "custom"` to connect Pinecone, Weaviate, pgvector, Qdrant, or any other store:
 
 ```ts
-import { VectorStoreAdapter } from "context-forge";
+import { VectorStoreAdapter } from "contextsmith";
 
 class PineconeAdapter implements VectorStoreAdapter {
   async upsert(chunks) {
@@ -242,7 +242,7 @@ retrieval: {
 ## Hook API
 
 ```tsx
-import { useRAG } from "context-forge";
+import { useRAG } from "contextsmith";
 
 const {
   index,             // (sources: DocumentSource[]) => Promise<void>
@@ -309,7 +309,7 @@ All types exported from the package root:
 import type {
   ContextForgeConfig, DocumentSource, QueryResult,
   VectorStoreAdapter, EmbeddingConfig, LLMConfig,
-} from "context-forge";
+} from "contextsmith";
 ```
 
 ---

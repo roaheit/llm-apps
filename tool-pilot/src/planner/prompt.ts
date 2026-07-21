@@ -1,4 +1,4 @@
-import { extractJson } from "llm-core";
+import { extractJson } from "corellm";
 import type { ToolDefinition } from "../types";
 
 export function buildSystemPrompt(tools: ToolDefinition[], customPreamble?: string): string {

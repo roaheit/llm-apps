@@ -1,4 +1,4 @@
-export type { LLMConfig, LLMProvider } from "llm-core";
+export type { LLMConfig, LLMProvider } from "corellm";
 
 export type NarrationTone = "narrative" | "analyst" | "casual" | "teacher";
 

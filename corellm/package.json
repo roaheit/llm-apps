@@ -1,5 +1,5 @@
 {
-  "name": "llm-core",
+  "name": "corellm",
   "version": "0.1.0",
   "description": "Shared multi-provider LLM client for the llm-apps packages — one adapter layer with baseUrl proxying, retries, timeouts, and token-usage capture. Framework-agnostic (uses fetch).",
   "main": "dist/index.js",
@@ -22,6 +22,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/roaheit/llm-apps",
-    "directory": "llm-core"
+    "directory": "corellm"
   }
 }

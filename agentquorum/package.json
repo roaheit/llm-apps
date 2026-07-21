@@ -1,7 +1,7 @@
 {
-  "name": "context-forge",
+  "name": "agentquorum",
   "version": "1.0.0",
-  "description": "Production-grade retrieval-augmented generation pipeline for React. Index files, URLs, or text — query with any LLM. In-memory vector store by default, pluggable for Pinecone, Weaviate, pgvector, and more.",
+  "description": "Composable multi-agent reasoning pipeline for React. Define a council of agents with custom roles, choose sequential or parallel orchestration, plug in any LLM — get a live visual reasoning trace.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -13,13 +13,13 @@
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
-    "rag", "retrieval-augmented-generation", "vector-store", "embeddings",
-    "llm", "ai", "anthropic", "openai", "react", "component", "llm-apps"
+    "agentquorum", "multi-agent", "ai", "llm", "reasoning", "anthropic", "openai",
+    "mistral", "react", "component", "pipeline", "llm-apps"
   ],
   "author": "roaheit",
   "license": "MIT",
   "dependencies": {
-    "llm-core": "^0.1.0"
+    "corellm": "^0.1.0"
   },
   "peerDependencies": {
     "react": ">=17.0.0",
@@ -28,6 +28,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/roaheit/llm-apps",
-    "directory": "context-forge"
+    "directory": "agentquorum"
   }
 }

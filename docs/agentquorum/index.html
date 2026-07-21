@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>agent-council &mdash; Composable multi-agent reasoning pipeline | llm-apps</title>
+<title>agentquorum &mdash; Composable multi-agent reasoning pipeline | llm-apps</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
@@ -375,7 +375,7 @@
   </p>
 
   <div class="hero-cta">
-    <a href="https://github.com/roaheit/llm-apps/tree/main/agent-council" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+    <a href="https://github.com/roaheit/llm-apps/tree/main/agentquorum" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
       View on GitHub &rarr;
     </a>
     <a href="#install" class="btn btn-outline">
@@ -395,7 +395,7 @@
         <span class="t-title">App.tsx</span>
       </div>
       <div class="terminal-body">
-        <div class="type-line"><span class="t-keyword">import</span> { AgentCouncil } <span class="t-keyword">from</span> <span class="t-str">"agent-council"</span></div>
+        <div class="type-line"><span class="t-keyword">import</span> { MultiAgentReasoning } <span class="t-keyword">from</span> <span class="t-str">"agentquorum"</span></div>
         <div class="type-line"> </div>
         <div class="type-line"><span class="t-keyword">const</span> pipeline = {</div>
         <div class="type-line">&nbsp;&nbsp;mode: <span class="t-str">"sequential"</span>,</div>
@@ -406,7 +406,7 @@
         <div class="type-line">&nbsp;&nbsp;],</div>
         <div class="type-line">&nbsp;&nbsp;synthesizer: { name: <span class="t-str">"Synthesizer"</span>, icon: <span class="t-str">"🧠"</span>, systemPrompt: <span class="t-str">"..."</span> },</div>
         <div class="type-line">}</div>
-        <div class="type-line"><span class="t-tag">&lt;AgentCouncil</span> <span class="t-attr">pipeline</span>={pipeline} /&gt;</div>
+        <div class="type-line"><span class="t-tag">&lt;MultiAgentReasoning</span> <span class="t-attr">pipeline</span>={pipeline} /&gt;</div>
       </div>
     </div>
   </div>
@@ -573,12 +573,12 @@
     <h2 class="reveal">One package.<br/>Any council.</h2>
 
     <div class="install-box reveal">
-      <span class="install-cmd">npm install agent-council</span>
-      <button class="copy-btn" onclick="copyInstall(this, 'npm install agent-council')">copy</button>
+      <span class="install-cmd">npm install agentquorum</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'npm install agentquorum')">copy</button>
     </div>
     <div class="install-box reveal" style="margin-top:0.75rem;">
-      <span class="install-cmd">yarn add agent-council</span>
-      <button class="copy-btn" onclick="copyInstall(this, 'yarn add agent-council')">copy</button>
+      <span class="install-cmd">yarn add agentquorum</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'yarn add agentquorum')">copy</button>
     </div>
 
     <div style="margin-top: 3rem;" class="reveal">
@@ -590,7 +590,7 @@
           <span class="t-title">StrategyReview.tsx</span>
         </div>
         <div class="terminal-body">
-          <div><span class="t-keyword">import</span> { AgentCouncil } <span class="t-keyword">from</span> <span class="t-str">"agent-council"</span></div>
+          <div><span class="t-keyword">import</span> { MultiAgentReasoning } <span class="t-keyword">from</span> <span class="t-str">"agentquorum"</span></div>
           <br/>
           <div><span class="t-keyword">const</span> pipeline = {</div>
           <div>&nbsp;&nbsp;mode: <span class="t-str">"sequential"</span>,</div>
@@ -604,7 +604,7 @@
           <div>&nbsp;&nbsp;synthesizer: { systemPrompt: <span class="t-str">"All outputs:\n{{outputs}}\n\nFinal verdict:"</span> },</div>
           <div>}</div>
           <br/>
-          <div><span class="t-tag">&lt;AgentCouncil</span></div>
+          <div><span class="t-tag">&lt;MultiAgentReasoning</span></div>
           <div>&nbsp;&nbsp;<span class="t-attr">pipeline</span>={pipeline}</div>
           <div>&nbsp;&nbsp;<span class="t-attr">placeholder</span>=<span class="t-str">"What should the council reason about?"</span></div>
           <div><span class="t-tag">/&gt;</span></div>
@@ -618,7 +618,7 @@
 <section style="border-top: 1px solid var(--border);">
   <div class="section-inner">
     <p class="section-label reveal">Hook API</p>
-    <h2 class="reveal">Full control<br/>with useAgentCouncil.</h2>
+    <h2 class="reveal">Full control<br/>with useMultiAgent.</h2>
     <p class="section-sub reveal">Skip the component and drive the pipeline directly. Plug results into any UI.</p>
 
     <div class="api-grid reveal">
@@ -655,8 +655,8 @@
   <div class="footer-inner">
     <div class="footer-brand">agent<span>-council</span></div>
     <div class="footer-links">
-      <a href="https://github.com/roaheit/llm-apps/tree/main/agent-council" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="https://www.npmjs.com/package/agent-council" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://github.com/roaheit/llm-apps/tree/main/agentquorum" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.npmjs.com/package/agentquorum" target="_blank" rel="noopener noreferrer">npm</a>
       <a href="https://github.com/roaheit/llm-apps/issues" target="_blank" rel="noopener noreferrer">Issues</a>
       <a href="../index.html">&larr; All Projects</a>
     </div>

@@ -1,6 +1,6 @@
 export type StoryTone = "narrative" | "analyst" | "casual" | "poetic";
 
-import type { LLMConfig, LLMProvider } from "llm-core";
+import type { LLMConfig, LLMProvider } from "corellm";
 export type { LLMConfig, LLMProvider };
 
 export interface JsonStorytellerProps {

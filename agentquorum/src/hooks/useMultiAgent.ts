@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { callLLM } from "llm-core";
+import { callLLM } from "corellm";
 import { interpolate, buildContext, buildOutputsSummary } from "../utils/interpolate";
 import type {
   UseMultiAgentOptions,
