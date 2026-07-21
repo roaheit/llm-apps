@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/roaheit/llm-apps",
+    "url": "git+https://github.com/roaheit/llm-apps.git",
     "directory": "sql-narrator"
   },
   "main": "dist/index.js",

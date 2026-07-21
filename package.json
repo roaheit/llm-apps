@@ -7,7 +7,7 @@
   "author": "roaheit",
   "repository": {
     "type": "git",
-    "url": "https://github.com/roaheit/llm-apps"
+    "url": "git+https://github.com/roaheit/llm-apps.git"
   },
   "engines": {
     "node": ">=18"
