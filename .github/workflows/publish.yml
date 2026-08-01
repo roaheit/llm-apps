@@ -28,7 +28,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           failed=""
-          for pkg in corellm agentensemble contextsmith json-storyteller pipeline-explainer sql-narrator tool-pilot; do
+          for pkg in corellm agentensemble contextsmith json-storyteller loopguard pipeline-explainer sql-narrator tool-pilot; do
             name=$(node -p "require('./$pkg/package.json').name")
             version=$(node -p "require('./$pkg/package.json').version")
             if npm view "$name@$version" version >/dev/null 2>&1; then

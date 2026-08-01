@@ -381,7 +381,7 @@
 
 <div class="stats-bar reveal">
   <div class="stat">
-    <span class="stat-num" data-target="7">0</span>
+    <span class="stat-num" data-target="8">0</span>
     <span class="stat-label">Projects</span>
   </div>
   <div class="stat">
@@ -588,6 +588,32 @@
         </div>
       </div>
 
+      <div class="project-card">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <span class="project-tag tag-ts">TypeScript</span>
+          <span class="project-tag tag-python" style="background:rgba(0,170,255,0.06);color:#6db8e0;border-color:rgba(0,170,255,0.12);">Framework-agnostic</span>
+        </div>
+        <div class="project-title">loop<span>guard</span></div>
+        <p class="project-desc">
+          Drop-in budget ceilings, convergence &amp; drift detection, and real cancellation for any agentic loop. An external observer you call into &mdash; no framework to adopt, no control flow to hand over.
+        </p>
+        <ul class="project-features">
+          <li>Hard ceilings: tokens, USD cost, wall-clock time, iterations</li>
+          <li>Zero-cost convergence &amp; oscillation detection &mdash; no extra LLM calls</li>
+          <li>Composes with AbortSignal &mdash; halts an in-flight LLM call, not just future ones</li>
+          <li>recordStep() + shouldHalt(): retrofits into an existing loop in minutes</li>
+        </ul>
+        <div class="project-footer">
+          <div class="project-links">
+            <a href="https://github.com/roaheit/llm-apps/tree/main/loopguard" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://www.npmjs.com/package/loopguard" target="_blank" rel="noopener noreferrer">npm</a>
+          </div>
+          <a href="loopguard/index.html" class="project-arrow">
+            Docs &rarr;
+          </a>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -674,6 +700,11 @@
         <span class="roadmap-status status-live">Live</span>
         <span class="roadmap-name">tool-pilot</span>
         <span class="roadmap-desc">Task-planning AI agent with ReAct reasoning loop &amp; pluggable tools</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="roadmap-status status-live">Live</span>
+        <span class="roadmap-name">loopguard</span>
+        <span class="roadmap-desc">Budget ceilings, convergence/drift detection &amp; cancellation for any agent loop</span>
       </li>
       <li class="roadmap-item">
         <span class="roadmap-status status-planned">Planned</span>

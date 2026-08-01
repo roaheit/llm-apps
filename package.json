@@ -17,6 +17,7 @@
     "agentensemble",
     "contextsmith",
     "json-storyteller",
+    "loopguard",
     "pipeline-explainer",
     "sql-narrator",
     "tool-pilot"
