@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>loopguard &mdash; Budget ceilings, drift detection &amp; real cancellation for agent loops | llm-apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080b0f;
+    --surface: #0e1318;
+    --border: #1c2530;
+    --accent: #c77dff;
+    --accent2: #0af;
+    --accent3: #f5a623;
+    --accent4: #22d3ee;
+    --text: #d4e0ec;
+    --muted: #7a909f;
+    --code-bg: #0a1019;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed; width: 10px; height: 10px;
+    background: var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, opacity 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.2s, height 0.2s, opacity 0.2s;
+    opacity: 0.5;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(199,125,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(199,125,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+  @keyframes gridPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  .hero {
+    position: relative; min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 4rem 2rem; z-index: 1; text-align: center;
+  }
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(199,125,255,0.07) 0%, transparent 70%);
+    pointer-events: none; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--accent); color: var(--accent);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.15em; padding: 6px 14px; border-radius: 2px;
+    margin-bottom: 2.5rem; animation: fadeUp 0.6s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; background: var(--accent);
+    border-radius: 50%; animation: blink 1.4s step-end infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  h1 {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 800; line-height: 0.95; letter-spacing: -0.04em;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  .h1-accent { color: var(--accent); }
+
+  .tagline {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+    color: var(--muted); margin-top: 1.5rem;
+    letter-spacing: 0.02em; max-width: 560px; line-height: 1.7;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 0.08em; padding: 12px 28px;
+    border-radius: 2px; text-decoration: none; transition: all 0.2s; cursor: none;
+  }
+  .btn-primary { background: var(--accent); color: #000; font-weight: 500; }
+  .btn-primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(199,125,255,0.3); }
+  .btn-outline { border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .stats-bar {
+    display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    z-index: 1; position: relative;
+  }
+  .stat {
+    flex: 1; min-width: 160px; padding: 2rem 1.5rem;
+    text-align: center; border-right: 1px solid var(--border); transition: background 0.25s;
+  }
+  .stat:last-child { border-right: none; }
+  .stat:hover { background: rgba(199,125,255,0.04); }
+  .stat-num {
+    font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em;
+    color: var(--accent); display: block; font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); letter-spacing: 0.1em; margin-top: 4px;
+    display: block; text-transform: uppercase;
+  }
+
+  .terminal-wrap {
+    width: 100%; max-width: 780px; margin-top: 4rem;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .terminal {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(199,125,255,0.05), 0 40px 80px rgba(0,0,0,0.6);
+    animation: borderGlow 4s ease-in-out infinite;
+  }
+  @keyframes borderGlow {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(199,125,255,0.05), 0 40px 80px rgba(0,0,0,0.6); }
+    50% { box-shadow: 0 0 0 1px rgba(199,125,255,0.15), 0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(199,125,255,0.05); }
+  }
+  .terminal-bar {
+    background: #131920; padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .t-dot.red   { background: #ff5f57; }
+  .t-dot.yellow{ background: #febc2e; }
+  .t-dot.green { background: #28c840; }
+  .t-title {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); margin-left: auto; margin-right: auto;
+  }
+  .terminal-body { padding: 1.5rem; font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.8; }
+  .t-comment { color: #6e8fa0; }
+  .t-keyword { color: var(--accent2); }
+  .t-fn { color: var(--accent); }
+  .t-str { color: var(--accent3); }
+
+  .type-line { overflow: hidden; white-space: nowrap; }
+  .type-line:nth-child(1)  { animation: typeIn 0.4s 1.0s both; }
+  .type-line:nth-child(2)  { animation: typeIn 0.4s 1.2s both; }
+  .type-line:nth-child(3)  { animation: typeIn 0.4s 1.4s both; }
+  .type-line:nth-child(4)  { animation: typeIn 0.4s 1.6s both; }
+  .type-line:nth-child(5)  { animation: typeIn 0.4s 1.8s both; }
+  .type-line:nth-child(6)  { animation: typeIn 0.4s 2.0s both; }
+  .type-line:nth-child(7)  { animation: typeIn 0.4s 2.2s both; }
+  .type-line:nth-child(8)  { animation: typeIn 0.4s 2.4s both; }
+  .type-line:nth-child(9)  { animation: typeIn 0.4s 2.6s both; }
+  .type-line:nth-child(10) { animation: typeIn 0.4s 2.8s both; }
+  @keyframes typeIn {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 2em; }
+  }
+
+  section { position: relative; z-index: 1; }
+  .section-inner { max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; }
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    letter-spacing: 0.2em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+  h2 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 1rem;
+  }
+  .section-sub {
+    font-family: 'DM Mono', monospace; color: var(--muted);
+    font-size: 0.9rem; max-width: 520px; line-height: 1.7;
+  }
+
+  .budgets-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 3rem;
+  }
+  .budget-card { background: var(--surface); padding: 1.75rem; transition: background 0.25s; }
+  .budget-card:hover { background: #111820; }
+  .budget-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .budget-val {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--accent); margin-bottom: 0.7rem; letter-spacing: 0.02em;
+  }
+  .budget-desc {
+    font-family: 'DM Mono', monospace; font-size: 0.76rem;
+    color: var(--muted); line-height: 1.6;
+  }
+
+  .detect-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden; margin-top: 3rem;
+  }
+  .detect-card {
+    background: var(--surface); padding: 2rem;
+    transition: background 0.25s; position: relative; overflow: hidden;
+  }
+  .detect-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(199,125,255,0.04));
+    pointer-events: none;
+  }
+  .detect-card:hover { background: #111820; }
+  .detect-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+  .detect-name { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .detect-desc {
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    color: var(--muted); line-height: 1.7;
+  }
+
+  .install-box {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.2rem 1.5rem; margin-top: 2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .install-cmd { color: var(--accent); }
+  .copy-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    padding: 5px 12px; border-radius: 2px; cursor: none;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--accent); color: var(--accent); }
+
+  .api-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3rem;
+  }
+  .api-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .api-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .api-method {
+    font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    color: var(--accent); margin-bottom: 0.5rem; word-break: break-word;
+  }
+  .api-desc {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); line-height: 1.6;
+  }
+  .api-desc code {
+    background: rgba(199,125,255,0.08);
+    color: var(--accent); padding: 1px 5px; border-radius: 2px;
+  }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 2.5rem 2rem;
+    text-align: center; z-index: 1; position: relative;
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1100px; margin: 0 auto; flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-brand { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+  .footer-brand span { color: var(--accent); }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); text-decoration: none; transition: color 0.2s; cursor: none;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .particle {
+    position: fixed; border-radius: 50%;
+    background: var(--accent); pointer-events: none; z-index: 0;
+    animation: float linear infinite; opacity: 0;
+  }
+  @keyframes float {
+    0% { transform: translateY(110vh) scale(0); opacity: 0; }
+    10% { opacity: 0.1; }
+    90% { opacity: 0.03; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  @media (max-width: 768px) {
+    .api-grid { grid-template-columns: 1fr; }
+    .footer-inner { flex-direction: column; text-align: center; }
+    .stat { min-width: 120px; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div id="particles" aria-hidden="true"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+
+  <div class="badge">
+    <span class="badge-dot" aria-hidden="true"></span>
+    v0.1 &mdash; Framework-agnostic TypeScript
+  </div>
+
+  <h1>loop<span class="h1-accent">guard</span></h1>
+  <p class="tagline">
+    Budget ceilings, convergence &amp; drift detection,<br/>
+    and real cancellation &mdash; for any agentic loop.
+  </p>
+
+  <div class="hero-cta">
+    <a href="https://github.com/roaheit/llm-apps/tree/main/loopguard" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+      View on GitHub &rarr;
+    </a>
+    <a href="#install" class="btn btn-outline">
+      npm install
+    </a>
+    <a href="../index.html" class="btn btn-outline">
+      &larr; All Projects
+    </a>
+  </div>
+
+  <div class="terminal-wrap">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="t-dot red"></span>
+        <span class="t-dot yellow"></span>
+        <span class="t-dot green"></span>
+        <span class="t-title">agent-loop.ts</span>
+      </div>
+      <div class="terminal-body">
+        <div class="type-line"><span class="t-keyword">import</span> { createLoopGuard } <span class="t-keyword">from</span> <span class="t-str">"loopguard"</span></div>
+        <div class="type-line"> </div>
+        <div class="type-line"><span class="t-keyword">const</span> guard = <span class="t-fn">createLoopGuard</span>({</div>
+        <div class="type-line">&nbsp;&nbsp;budgets: { maxTotalTokens: <span class="t-str">50_000</span>, maxIterations: <span class="t-str">25</span> },</div>
+        <div class="type-line">})</div>
+        <div class="type-line"> </div>
+        <div class="type-line"><span class="t-keyword">while</span> (!guard.<span class="t-fn">shouldHalt</span>()) {</div>
+        <div class="type-line">&nbsp;&nbsp;<span class="t-keyword">const</span> result = <span class="t-keyword">await</span> <span class="t-fn">complete</span>(llm, { prompt, signal: guard.signal })</div>
+        <div class="type-line">&nbsp;&nbsp;guard.<span class="t-fn">recordStep</span>({ content: result.text, usage: result.usage })</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar reveal">
+  <div class="stat">
+    <span class="stat-num" data-target="4">0</span>
+    <span class="stat-label">Budget Dimensions</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="2">0</span>
+    <span class="stat-label">Detection Modes</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="0">0</span>
+    <span class="stat-label">Extra LLM Calls</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num" data-target="0">0</span>
+    <span class="stat-label">Framework Lock-in</span>
+  </div>
+</div>
+
+<!-- BUDGETS -->
+<section>
+  <div class="section-inner">
+    <p class="section-label reveal">Budgets</p>
+    <h2 class="reveal">Hard ceilings.<br/>Zero surprises.</h2>
+    <p class="section-sub reveal">Cap what a loop is allowed to spend before it spends it &mdash; tokens, dollars, time, or iterations. Any dimension left unset is simply not enforced.</p>
+
+    <div class="budgets-grid reveal">
+      <div class="budget-card">
+        <div class="budget-name">Tokens</div>
+        <div class="budget-val">maxTotalTokens</div>
+        <div class="budget-desc">Cumulative input + output tokens across every recorded step.</div>
+      </div>
+      <div class="budget-card">
+        <div class="budget-name">Cost</div>
+        <div class="budget-val">maxTotalCostUsd</div>
+        <div class="budget-desc">Estimated USD via an overridable pricing table. Fails loud, not silent, if cost can't be resolved.</div>
+      </div>
+      <div class="budget-card">
+        <div class="budget-name">Wall-clock</div>
+        <div class="budget-val">maxWallClockMs</div>
+        <div class="budget-desc">Enforced by an internal timer &mdash; trips even with zero recordStep() calls.</div>
+      </div>
+      <div class="budget-card">
+        <div class="budget-name">Iterations</div>
+        <div class="budget-val">maxIterations</div>
+        <div class="budget-desc">A hard cap on the number of recordStep() calls, independent of content.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DETECTION -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Detection</p>
+    <h2 class="reveal">Catches stuck loops.<br/>For free.</h2>
+    <p class="section-sub reveal">Two zero-cost heuristics — no embeddings, no extra API calls — spot the two most common ways an agentic loop wastes your budget.</p>
+
+    <div class="detect-grid reveal">
+      <div class="detect-card">
+        <div class="detect-icon">&#x1F3AF;</div>
+        <div class="detect-name">Convergence</div>
+        <div class="detect-desc">Is this one state stuck? Several consecutive near-identical outputs &mdash; or an explicit <code>isFinal</code> signal from the loop &mdash; halt with reason <code>"converged"</code>.</div>
+      </div>
+      <div class="detect-card">
+        <div class="detect-icon">&#x1F501;</div>
+        <div class="detect-name">Drift</div>
+        <div class="detect-desc">Is this oscillating between &ge;2 states? Averaged similarity across a repeating cycle (with a per-pair floor) catches A&rarr;B&rarr;A&rarr;B loops, halting with reason <code>"drift"</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RETROFIT -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Retrofit</p>
+    <h2 class="reveal">Minutes, not a<br/>rewrite.</h2>
+    <p class="section-sub reveal">loopguard is an external observer, not a framework. Call recordStep() after your LLM call and shouldHalt() at the top of your loop &mdash; that's the whole integration.</p>
+
+    <div style="margin-top: 3rem;" class="reveal">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">tool-pilot/planner.ts</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-keyword">for</span> (<span class="t-keyword">let</span> i = 0; i &lt; maxSteps; i++) {</div>
+          <div>&nbsp;&nbsp;<span class="t-keyword">if</span> (guard?.<span class="t-fn">shouldHalt</span>()) <span class="t-keyword">return</span> buildHaltedRun(guard.check().reason)</div>
+          <div> </div>
+          <div>&nbsp;&nbsp;<span class="t-keyword">const</span> result = <span class="t-keyword">await</span> <span class="t-fn">complete</span>(llm, { prompt, signal: guard?.signal })</div>
+          <div>&nbsp;&nbsp;guard?.<span class="t-fn">recordStep</span>({ content: actionText, usage: result.usage })</div>
+          <div>&nbsp;&nbsp;<span class="t-comment">// ...existing THINK/ACTION/OBSERVATION logic, untouched</span></div>
+          <div>}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install" style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">Install</p>
+    <h2 class="reveal">One install.<br/>Any runtime.</h2>
+
+    <div class="install-box reveal">
+      <span class="install-cmd">npm install loopguard</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'npm install loopguard')">copy</button>
+    </div>
+    <div class="install-box reveal" style="margin-top:0.75rem;">
+      <span class="install-cmd">yarn add loopguard</span>
+      <button class="copy-btn" onclick="copyInstall(this, 'yarn add loopguard')">copy</button>
+    </div>
+
+    <div style="margin-top: 3rem;" class="reveal">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="t-dot red"></span>
+          <span class="t-dot yellow"></span>
+          <span class="t-dot green"></span>
+          <span class="t-title">plain-loop.ts</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-keyword">const</span> guard = <span class="t-fn">createLoopGuard</span>({</div>
+          <div>&nbsp;&nbsp;drift: { minCycleLength: <span class="t-str">2</span> },</div>
+          <div>&nbsp;&nbsp;onHalt: (v) =&gt; console.warn(<span class="t-str">"loop halted:"</span>, v.reason),</div>
+          <div>})</div>
+          <br/>
+          <div><span class="t-comment">// works with ANY loop, no tool-pilot dependency required</span></div>
+          <div>guard.snapshot() <span class="t-comment">// { iterations, totalTokens, totalCostUsd, elapsedMs, ... }</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- API -->
+<section style="border-top: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-label reveal">API</p>
+    <h2 class="reveal">Small surface.<br/>Composable core.</h2>
+
+    <div class="api-grid reveal">
+      <div class="api-card">
+        <div class="api-method">createLoopGuard(config?): LoopGuardInstance</div>
+        <div class="api-desc">The single entry point. Every field on <code>config</code> is optional.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">guard.signal: AbortSignal</div>
+        <div class="api-desc">Thread into corellm's <code>signal</code> on every LLM call &mdash; aborts an in-flight call the instant the guard trips.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">guard.recordStep(step): HaltVerdict</div>
+        <div class="api-desc">Record one iteration's <code>content</code>/<code>usage</code>. Updates counters and evaluates every trip condition immediately.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">guard.shouldHalt(): boolean</div>
+        <div class="api-desc">Check at the top of your loop. Re-checks wall-clock even with no new steps.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">guard.snapshot(): GuardSnapshot</div>
+        <div class="api-desc">Point-in-time counters: iterations, tokens, cost, elapsed time, trip state.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">guard.reset(): void</div>
+        <div class="api-desc">Clears all counters and re-arms a fresh, non-aborted signal.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">pricing?: PricingTable</div>
+        <div class="api-desc">Overrides <code>DEFAULT_PRICING</code> (illustrative $/1M-token rates) for cost budgets.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-method">onHalt?: (verdict) =&gt; void</div>
+        <div class="api-desc">Fires exactly once, the first time the guard trips, for any reason.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">loop<span>guard</span></div>
+    <div class="footer-links">
+      <a href="https://github.com/roaheit/llm-apps/tree/main/loopguard" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.npmjs.com/package/loopguard" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://github.com/roaheit/llm-apps/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+      <a href="../index.html">&larr; All Projects</a>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">
+      MIT License
+    </div>
+  </div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top  = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    ring.style.width = '56px'; ring.style.height = '56px'; ring.style.opacity = '0.8';
+  });
+  el.addEventListener('mouseleave', () => {
+    ring.style.width = '36px'; ring.style.height = '36px'; ring.style.opacity = '0.5';
+  });
+});
+
+const particleContainer = document.getElementById('particles');
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 3 + 1;
+  p.style.cssText = `
+    width: ${size}px; height: ${size}px;
+    left: ${Math.random() * 100}vw;
+    animation-duration: ${12 + Math.random() * 20}s;
+    animation-delay: ${Math.random() * 15}s;
+  `;
+  particleContainer.appendChild(p);
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+function animateCount(el, target, duration = 1200) {
+  if (target === 0) { el.textContent = '0'; return; }
+  let start = null;
+  const step = ts => {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('[data-target]').forEach(el => {
+        animateCount(el, parseInt(el.dataset.target));
+      });
+      statsObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stats-bar').forEach(el => statsObserver.observe(el));
+
+function copyInstall(btn, text) {
+  navigator.clipboard.writeText(text);
+  btn.textContent = 'copied ✓';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+}
+</script>
+</body>
+</html>

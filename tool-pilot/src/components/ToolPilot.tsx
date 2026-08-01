@@ -8,6 +8,7 @@ const ICONS: Record<string, string> = {
   observation: "👁",
   answer: "✅",
   error: "❌",
+  halted: "🛑",
 };
 
 const LABELS: Record<string, string> = {
@@ -16,6 +17,7 @@ const LABELS: Record<string, string> = {
   observation: "Observation",
   answer: "Answer",
   error: "Error",
+  halted: "Halted",
 };
 
 function StepCard({

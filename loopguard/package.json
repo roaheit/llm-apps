@@ -1,0 +1,30 @@
+{
+  "name": "loopguard",
+  "version": "0.1.0",
+  "description": "Budget ceilings, convergence/drift detection, and real AbortSignal cancellation for any agentic loop — an external observer you call into, not a framework you adopt.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "keywords": [
+    "agent", "llm", "ai", "guardrails", "budget", "cost", "tokens",
+    "cancellation", "abortsignal", "drift", "convergence", "llm-apps"
+  ],
+  "author": "roaheit",
+  "license": "MIT",
+  "dependencies": {
+    "corellm": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roaheit/llm-apps.git",
+    "directory": "loopguard"
+  }
+}

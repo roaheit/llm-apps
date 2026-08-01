@@ -54,6 +54,10 @@ Most "LLM example" repos give you a clever prompt and a `fetch` call. This one i
 - **[agentensemble](agentensemble/)** — convene a **council of agents** with distinct roles, run them sequentially or in parallel, and watch a live reasoning trace converge on an answer. · [docs](https://roaheit.github.io/llm-apps/agentensemble)
 - **[agent-recall](agent-recall/)** — give your agents a memory that lasts: **short-term, long-term, and episodic** layers, local-first and framework-agnostic. *(Python)* · [docs](https://roaheit.github.io/llm-apps/agent-recall)
 
+### 🛡️ Guardrails & control
+
+- **[loopguard](loopguard/)** — drop-in budget ceilings (tokens, USD cost, wall-clock time, iterations), zero-cost convergence & drift/oscillation detection, and real `AbortSignal` cancellation for **any** agentic loop. An external observer you call into — no framework to adopt, no control flow to hand over. · [docs](https://roaheit.github.io/llm-apps/loopguard)
+
 ### 📚 Retrieval & data intelligence
 
 - **[contextsmith](contextsmith/)** — a production-shaped **RAG pipeline in a React hook**: index files, URLs, or text and query with any LLM. In-memory vectors by default; pluggable for Pinecone, Weaviate, pgvector. · [docs](https://roaheit.github.io/llm-apps/contextsmith)
@@ -114,25 +118,32 @@ await stream(config, {
 
 Each package ships its own README and **[interactive docs](https://roaheit.github.io/llm-apps)** — explore the source, compose them, or lift the patterns into your own stack.
 
-> 📦 **Note:** npm publishing is rolling out now — package names were just claimed. Until then, use them from source (above).
+Every package is also published on npm, built and released straight from CI with [provenance](https://docs.npmjs.com/generating-provenance-statements):
+
+```bash
+npm install corellm
+npm install tool-pilot
+npm install loopguard
+# ...and the rest, each under its own package name (see the table below)
+```
 
 ---
 
 ## 🗺️ Roadmap
 
-**Recently shipped:** shared `corellm` · token streaming · structured output · security hardening · tests + CI 🎉
+**Recently shipped:** shared `corellm` · token streaming · structured output · security hardening · tests + CI · npm publishing with provenance · `loopguard` 🎉
 
 | Status | Project | Description |
 |---|---|---|
 | ✅ Live | **corellm** | Shared multi-provider LLM client — streaming, retries, structured output, usage |
 | ✅ Live | **tool-pilot** | ReAct agent with a live reasoning loop & pluggable tools |
+| ✅ Live | **loopguard** | Budget ceilings, convergence/drift detection & cancellation for any agent loop |
 | ✅ Live | **agentensemble** | Composable multi-agent reasoning pipeline for React |
 | ✅ Live | **agent-recall** | Persistent short/long/episodic memory for LLM agents (Python) |
 | ✅ Live | **contextsmith** | Retrieval-augmented generation pipeline for React |
 | ✅ Live | **sql-narrator** | Explains SQL queries and their results in plain English |
 | ✅ Live | **pipeline-explainer** | Visualizes & narrates data pipeline DAGs |
 | ✅ Live | **json-storyteller** | LLM-powered JSON → narrative React component |
-| 🔜 Next | npm releases | Publish every package under its own collision-free name |
 | 📋 Planned | Model benchmarking toolkit | Cost-vs-accuracy comparisons across providers & tasks |
 | 📋 Planned | Enterprise AI reference architecture | Full-stack blueprint for production AI systems |
 

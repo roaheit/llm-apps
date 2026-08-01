@@ -1,10 +1,13 @@
-import { callLLM } from "corellm";
+import { complete } from "corellm";
+import { createLoopGuard } from "loopguard";
 import { buildSystemPrompt, parseAgentResponse } from "./prompt";
 import type {
   ToolPilotConfig,
   ToolDefinition,
   ReasoningStep,
   AgentRun,
+  HaltReason,
+  TokenUsage,
 } from "../types";
 
 let stepCounter = 0;
@@ -28,13 +31,52 @@ export async function runAgent(
   let transcript = `User task: ${input}`;
   const startTime = Date.now();
 
+  const guard = config.guard ? createLoopGuard({ ...config.guard, defaultLLM: config.llm }) : undefined;
+
+  const buildHaltedRun = (haltReason: HaltReason | undefined): AgentRun => {
+    const last = steps.filter((s) => s.kind === "observation" || s.kind === "thinking").at(-1);
+    const answer = last
+      ? `(Halted — ${haltReason})\n\nBased on progress so far:\n${last.content}`
+      : `(Halted — ${haltReason})`;
+    const haltStep: ReasoningStep = {
+      id: makeId(),
+      kind: "halted",
+      content: answer,
+      timestamp: Date.now(),
+    };
+    steps.push(haltStep);
+    onStep?.(haltStep);
+    return {
+      input,
+      steps,
+      answer,
+      status: "halted",
+      totalDurationMs: Date.now() - startTime,
+      haltReason,
+    };
+  };
+
   for (let i = 0; i < maxSteps; i++) {
+    if (guard?.shouldHalt()) {
+      return buildHaltedRun(guard.check().reason);
+    }
+
     // Ask the LLM to reason
     const stepStart = Date.now();
     let llmOutput: string;
+    let usage: TokenUsage | undefined;
     try {
-      llmOutput = await callLLM(transcript, systemPrompt, config.llm);
+      const result = await complete(config.llm, {
+        prompt: transcript,
+        system: systemPrompt,
+        signal: guard?.signal,
+      });
+      llmOutput = result.text;
+      usage = result.usage;
     } catch (e) {
+      if (guard?.signal.aborted) {
+        return buildHaltedRun(guard.check().reason);
+      }
       const errorStep: ReasoningStep = {
         id: makeId(),
         kind: "error",
@@ -55,6 +97,15 @@ export async function runAgent(
     }
 
     const parsed = parseAgentResponse(llmOutput);
+    guard?.recordStep({
+      content: parsed.action
+        ? `${parsed.action}(${JSON.stringify(parsed.actionInput ?? {})})`
+        : (parsed.answer ?? llmOutput),
+      usage,
+      provider: config.llm.provider,
+      model: config.llm.model,
+      isFinal: Boolean(parsed.answer),
+    });
 
     // Record thinking step
     if (parsed.think) {

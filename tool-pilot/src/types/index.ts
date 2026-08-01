@@ -1,9 +1,11 @@
-import type { LLMConfig, LLMProvider } from "corellm";
-export type { LLMConfig, LLMProvider };
+import type { LLMConfig, LLMProvider, TokenUsage } from "corellm";
+export type { LLMConfig, LLMProvider, TokenUsage };
+import type { LoopGuardConfig, HaltReason } from "loopguard";
+export type { LoopGuardConfig, HaltReason };
 
-export type StepKind = "thinking" | "tool-call" | "observation" | "answer" | "error";
+export type StepKind = "thinking" | "tool-call" | "observation" | "answer" | "error" | "halted";
 
-export type AgentStatus = "idle" | "planning" | "executing" | "done" | "error";
+export type AgentStatus = "idle" | "planning" | "executing" | "done" | "error" | "halted";
 
 export interface ToolParameter {
   name: string;
@@ -44,6 +46,8 @@ export interface AgentRun {
   status: AgentStatus;
   totalDurationMs: number;
   error?: string;
+  /** Present only when status === "halted". */
+  haltReason?: HaltReason;
 }
 
 export interface ToolPilotConfig {
@@ -55,6 +59,8 @@ export interface ToolPilotConfig {
   systemPrompt?: string;
   /** Maximum reasoning steps before the agent is forced to answer. Default: 10 */
   maxSteps?: number;
+  /** Opt-in loop governance: budget ceilings, convergence/drift detection, cancellation. Off by default. */
+  guard?: LoopGuardConfig;
 }
 
 export interface UseToolPilotOptions {
